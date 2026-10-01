@@ -78,9 +78,13 @@ if ($doc['categories'] === []) {
         echo '<form method="post" class="inline-form">';
         echo kothar_csrf_field();
         echo '<input type="hidden" name="id" value="' . kothar_h($id) . '">';
+        $name = trim((string) ($category['name'] ?? ''));
+        $confirm = $name === ''
+            ? 'Weet je zeker dat je deze categorie wilt verwijderen?'
+            : 'Weet je zeker dat je de categorie ' . $name . ' wilt verwijderen?';
         echo '<button type="submit" name="actie" value="omhoog">Omhoog</button>';
         echo '<button type="submit" name="actie" value="omlaag">Omlaag</button>';
-        echo '<button type="submit" name="actie" value="verwijder">Verwijder</button>';
+        echo '<button type="button" data-confirm="' . kothar_h($confirm) . '" data-actie="verwijder" data-confirm-note="Opgeslagen samenstellingen blijven staan.">Verwijder</button>';
         echo '</form></li>';
     }
     echo '</ol>';

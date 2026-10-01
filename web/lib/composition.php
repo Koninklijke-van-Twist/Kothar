@@ -21,6 +21,34 @@ function kothar_join_codes(array $codes): string
     return implode('.', $parts);
 }
 
+/**
+ * Stabiele kleur bij een codesegment, voor de kaartbalk en de onderstreping
+ * van dat segment. Zelfde formule in web/assets/app.js (kotharSegmentColor):
+ *
+ * trim de code, loop over de UTF-8-bytes:
+ *   hash = (hash * 33 + byte) mod 9973
+ *   hue  = (hash * 47) mod 360
+ *
+ * Resultaat is hsl(hue 62% 36%). Dezelfde code krijgt altijd dezelfde kleur,
+ * ook in een andere kolom. Een spatie in de code telt mee (05 L ≠ 05L).
+ * Een lege code heeft geen kleur.
+ */
+function kothar_segment_color(string $code): string
+{
+    $code = trim($code);
+    if ($code === '') {
+        return '';
+    }
+    $hash = 0;
+    $length = strlen($code);
+    for ($i = 0; $i < $length; $i++) {
+        $hash = ($hash * 33 + ord($code[$i])) % 9973;
+    }
+    $hue = ($hash * 47) % 360;
+
+    return 'hsl(' . $hue . ' 62% 36%)';
+}
+
 function kothar_canonicalize_number(string $number): string
 {
     $number = trim($number);

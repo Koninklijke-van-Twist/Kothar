@@ -22,6 +22,13 @@ check(kothar_join_codes(['I', '2', '20']) === 'I.2.20', 'join Tim example');
 check(kothar_join_codes(['I', '', '2', '  ', '20']) === 'I.2.20', 'skip empty codes');
 check(kothar_join_codes(['05 L', 'Y']) === '05 L.Y', 'keep space inside a code');
 check(kothar_canonicalize_number(' I. 2. 20 ') === 'I.2.20', 'canonicalize spaces around dots');
+check(kothar_segment_color('') === '', 'empty segment has no color');
+check(kothar_segment_color('   ') === '', 'blank segment has no color');
+check(kothar_segment_color('F') === 'hsl(50 62% 36%)', 'Fuel code F keeps its hue');
+check(kothar_segment_color('ST') === 'hsl(201 62% 36%)', 'Standard code ST keeps its hue');
+check(kothar_segment_color(' F ') === kothar_segment_color('F'), 'segment color trims the ends');
+check(kothar_segment_color('05 L') !== kothar_segment_color('05L'), 'space inside a code changes the color');
+check(kothar_segment_color('Y') === kothar_segment_color('Y'), 'same code keeps the same color');
 
 $stored = [
     ['id' => 'c_1', 'number' => 'I.2.20'],
