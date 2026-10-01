@@ -560,9 +560,23 @@
     var button = pending;
     var form = button && button.form;
     var actie = button ? (button.getAttribute("data-actie") || "") : "";
+    var optie = button ? (button.getAttribute("data-optie") || "") : "";
     closeModal();
     if (!form || actie === "") {
       return;
+    }
+    if (optie !== "") {
+      var optieInput = form.querySelector('input[name="optie"]');
+      if (!optieInput) {
+        optieInput = document.createElement("input");
+        optieInput.type = "hidden";
+        optieInput.name = "optie";
+        form.appendChild(optieInput);
+      }
+      optieInput.value = optie;
+    }
+    if (window.kotharEnsureCsrf) {
+      window.kotharEnsureCsrf(form);
     }
     var input = document.createElement("input");
     input.type = "hidden";
@@ -571,4 +585,516 @@
     form.appendChild(input);
     form.submit();
   });
+})();
+
+(function () {
+  function token() {
+    var meta = document.querySelector('meta[name="csrf-token"]');
+    return meta ? (meta.getAttribute("content") || "") : "";
+  }
+
+  function ensure(form) {
+    var value = token();
+    if (!form || value === "") {
+      return value;
+    }
+    var input = form.querySelector('input[name="csrf"]');
+    if (!input) {
+      input = document.createElement("input");
+      input.type = "hidden";
+      input.name = "csrf";
+      form.appendChild(input);
+    }
+    if (input.value === "") {
+      input.value = value;
+    }
+    return value;
+  }
+
+  document.addEventListener("submit", function (event) {
+    var form = event.target;
+    if (form && form.tagName === "FORM") {
+      ensure(form);
+    }
+  }, true);
+  window.kotharCsrf = token;
+  window.kotharEnsureCsrf = ensure;
+})();
+
+(function () {
+  var list = document.querySelector("[data-column-list]");
+  if (!list) {
+    return;
+  }
+  var categoryId = list.getAttribute("data-category-id") || "";
+  var button = document.querySelector("[data-volgorde-knop]");
+  var hint = document.querySelector("[data-reorder-hint]");
+  var orderQueue = Promise.resolve();
+  var serverOrder = columnIds();
+
+  if (list.getAttribute("data-reordering") === "1") {
+    document.body.classList.add("is-reordering");
+    closeColumns();
+  }
+
+  function columnNodes() {
+    return Array.prototype.slice.call(list.querySelectorAll("[data-column]"));
+  }
+
+  function columnIds() {
+    var ids = [];
+    columnNodes().forEach(function (node) {
+      ids.push(node.getAttribute("data-column-id") || "");
+    });
+    return ids;
+  }
+
+  function closeColumns() {
+    columnNodes().forEach(function (column) {
+      column.open = false;
+    });
+  }
+
+  function messageFrom(text) {
+    var raw = String(text || "").trim();
+    if (raw === "") {
+      return "Opslaan mislukt.";
+    }
+    try {
+      var data = JSON.parse(raw);
+      if (data && data.message) {
+        return String(data.message);
+      }
+    } catch (error) {
+      return raw;
+    }
+    return raw;
+  }
+
+  function showError(message) {
+    var main = document.querySelector("main");
+    var node = document.querySelector("[data-admin-error]");
+    if (!node) {
+      node = document.createElement("p");
+      node.className = "flash flash-warn";
+      node.setAttribute("data-admin-error", "");
+      node.setAttribute("role", "alert");
+      if (main) {
+        main.insertBefore(node, main.firstChild);
+      }
+    }
+    node.hidden = false;
+    node.textContent = message;
+  }
+
+  function hideError() {
+    var node = document.querySelector("[data-admin-error]");
+    if (node) {
+      node.hidden = true;
+    }
+  }
+
+  function currentOptionOrder(optionList) {
+    var ids = [];
+    Array.prototype.forEach.call(optionList.querySelectorAll("[data-option-id]"), function (row) {
+      var id = row.getAttribute("data-option-id") || "";
+      if (id !== "") {
+        ids.push(id);
+      }
+    });
+    return ids.join(",");
+  }
+
+  function formDirty(form) {
+    var fields = form.querySelectorAll("input, textarea, select");
+    var i;
+    for (i = 0; i < fields.length; i++) {
+      var field = fields[i];
+      if (field.type === "hidden" || field.type === "submit" || field.type === "button") {
+        continue;
+      }
+      if (field.value !== field.defaultValue) {
+        return true;
+      }
+    }
+    var optionList = form.querySelector("[data-option-list]");
+    if (!optionList) {
+      return false;
+    }
+    return (optionList.getAttribute("data-original-order") || "") !== currentOptionOrder(optionList);
+  }
+
+  function syncDirty(form) {
+    Array.prototype.forEach.call(form.querySelectorAll("input, textarea, select"), function (field) {
+      if (field.type === "hidden" || field.type === "submit" || field.type === "button") {
+        return;
+      }
+      field.classList.toggle("is-dirty", field.value !== field.defaultValue);
+    });
+    var optionList = form.querySelector("[data-option-list]");
+    if (!optionList) {
+      return;
+    }
+    var original = (optionList.getAttribute("data-original-order") || "").split(",");
+    var now = currentOptionOrder(optionList).split(",");
+    if (original.length === 1 && original[0] === "") {
+      original = [];
+    }
+    if (now.length === 1 && now[0] === "") {
+      now = [];
+    }
+    Array.prototype.forEach.call(optionList.querySelectorAll("[data-option-id]"), function (row) {
+      var id = row.getAttribute("data-option-id") || "";
+      var handle = row.querySelector("[data-option-handle]");
+      if (!handle) {
+        return;
+      }
+      handle.classList.toggle("is-dirty", original.indexOf(id) !== now.indexOf(id));
+    });
+  }
+
+  function anyDirty() {
+    var forms = document.querySelectorAll("form[data-save-actie]");
+    var i;
+    for (i = 0; i < forms.length; i++) {
+      if (formDirty(forms[i])) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function dirtyForms() {
+    return Array.prototype.filter.call(document.querySelectorAll("form[data-save-actie]"), function (form) {
+      return formDirty(form);
+    });
+  }
+
+  function setReordering(on) {
+    document.body.classList.toggle("is-reordering", on);
+    closeColumns();
+    columnNodes().forEach(function (column) {
+      var handle = column.querySelector("[data-column-handle]");
+      if (handle) {
+        handle.hidden = !on;
+      }
+    });
+    if (button) {
+      button.textContent = on ? "Volgorde aanpassen gereed" : "Volgorde aanpassen";
+      button.setAttribute("aria-pressed", on ? "true" : "false");
+    }
+    if (hint) {
+      hint.hidden = !on;
+    }
+    if (window.history && window.history.replaceState) {
+      var url = new URL(window.location.href);
+      if (on) {
+        url.searchParams.set("volgorde", "1");
+      } else {
+        url.searchParams.delete("volgorde");
+      }
+      window.history.replaceState(null, "", url.pathname + url.search);
+    }
+  }
+
+  function reorderUrl() {
+    return "beheer_categorie.php?id=" + encodeURIComponent(categoryId) + "&volgorde=1";
+  }
+
+  function postForm(form) {
+    if (window.kotharEnsureCsrf) {
+      window.kotharEnsureCsrf(form);
+    }
+    var data = new FormData(form);
+    data.set("actie", form.getAttribute("data-save-actie") || "");
+    data.set("ajax", "1");
+    if (!data.get("csrf") && window.kotharCsrf) {
+      data.set("csrf", window.kotharCsrf());
+    }
+    return fetch(window.location.pathname + window.location.search, {
+      method: "POST",
+      body: data,
+      credentials: "same-origin",
+      headers: { Accept: "application/json" }
+    }).then(function (response) {
+      if (!response.ok) {
+        return response.text().then(function (text) {
+          throw new Error(messageFrom(text));
+        });
+      }
+    });
+  }
+
+  function saveDirtyThenReorder() {
+    var forms = dirtyForms();
+    var chain = Promise.resolve();
+    forms.forEach(function (form) {
+      chain = chain.then(function () {
+        return postForm(form);
+      });
+    });
+    return chain.then(function () {
+      window.location = reorderUrl();
+    });
+  }
+
+  function postColumnOrder(ids) {
+    var body = new URLSearchParams();
+    body.set("csrf", window.kotharCsrf ? window.kotharCsrf() : "");
+    body.set("id", categoryId);
+    body.set("actie", "kolom-volgorde");
+    body.set("ajax", "1");
+    ids.forEach(function (id) {
+      body.append("kolom_id[]", id);
+    });
+    return fetch("beheer_categorie.php?id=" + encodeURIComponent(categoryId), {
+      method: "POST",
+      body: body,
+      credentials: "same-origin",
+      headers: { Accept: "application/json" }
+    }).then(function (response) {
+      if (!response.ok) {
+        return response.text().then(function (text) {
+          throw new Error(messageFrom(text));
+        });
+      }
+    });
+  }
+
+  function applyColumnOrder(ids) {
+    var byId = {};
+    columnNodes().forEach(function (node) {
+      byId[node.getAttribute("data-column-id")] = node;
+    });
+    ids.forEach(function (id) {
+      if (byId[id]) {
+        list.appendChild(byId[id]);
+      }
+    });
+  }
+
+  function persistColumnOrder() {
+    var snapshot = columnIds();
+    if (snapshot.join(",") === serverOrder.join(",")) {
+      return;
+    }
+    orderQueue = orderQueue.then(function () {
+      return postColumnOrder(snapshot).then(function () {
+        serverOrder = snapshot.slice();
+        hideError();
+      }).catch(function (error) {
+        applyColumnOrder(serverOrder);
+        showError(error.message || "Ongeldige sessie. Laad de pagina opnieuw.");
+      });
+    });
+  }
+
+  function bindSort(container, canStart, onUpdate) {
+    var dragItem = null;
+    var pointerId = null;
+
+    function move(event) {
+      if (!dragItem || event.pointerId !== pointerId) {
+        return;
+      }
+      dragItem.style.pointerEvents = "none";
+      var under = document.elementFromPoint(event.clientX, event.clientY);
+      dragItem.style.pointerEvents = "";
+      var target = under && under.closest("[data-sort-item]");
+      if (!target || target === dragItem || target.parentElement !== container) {
+        return;
+      }
+      var rect = target.getBoundingClientRect();
+      var after = event.clientY > rect.top + rect.height / 2;
+      container.insertBefore(dragItem, after ? target.nextSibling : target);
+    }
+
+    function finish(event) {
+      if (!dragItem || event.pointerId !== pointerId) {
+        return;
+      }
+      document.removeEventListener("pointermove", move);
+      document.removeEventListener("pointerup", finish);
+      document.removeEventListener("pointercancel", finish);
+      dragItem.classList.remove("is-dragging");
+      dragItem.style.pointerEvents = "";
+      dragItem = null;
+      pointerId = null;
+      onUpdate();
+    }
+
+    container.addEventListener("pointerdown", function (event) {
+      if (event.button > 0) {
+        return;
+      }
+      var item = canStart(event);
+      if (!item || item.parentElement !== container) {
+        return;
+      }
+      event.preventDefault();
+      dragItem = item;
+      pointerId = event.pointerId;
+      item.classList.add("is-dragging");
+      document.addEventListener("pointermove", move);
+      document.addEventListener("pointerup", finish);
+      document.addEventListener("pointercancel", finish);
+    });
+  }
+
+  columnNodes().forEach(function (column) {
+    column.setAttribute("data-sort-item", "");
+    var summary = column.querySelector("summary");
+    if (summary) {
+      summary.addEventListener("click", function (event) {
+        if (document.body.classList.contains("is-reordering")) {
+          event.preventDefault();
+        }
+      });
+    }
+    column.addEventListener("toggle", function () {
+      if (document.body.classList.contains("is-reordering") && column.open) {
+        column.open = false;
+      }
+    });
+    var form = column.querySelector("[data-column-form]");
+    if (!form) {
+      return;
+    }
+    form.addEventListener("input", function () {
+      syncDirty(form);
+      var nameInput = form.querySelector('[name="kolomnaam"]');
+      var nameLabel = column.querySelector(".column-name");
+      if (nameInput && nameLabel) {
+        nameLabel.textContent = nameInput.value.trim() || "Kolom";
+      }
+    });
+    var optionList = form.querySelector("[data-option-list]");
+    if (optionList) {
+      Array.prototype.forEach.call(optionList.querySelectorAll("[data-option-id]"), function (row) {
+        row.setAttribute("data-sort-item", "");
+      });
+      bindSort(optionList, function (event) {
+        var handle = event.target.closest("[data-option-handle]");
+        if (!handle || !optionList.contains(handle)) {
+          return null;
+        }
+        return handle.closest("[data-option-id]");
+      }, function () {
+        syncDirty(form);
+      });
+    }
+    var add = form.querySelector("[data-add-option]");
+    if (add) {
+      add.addEventListener("click", function () {
+        var label = form.querySelector("[data-new-label]");
+        if (!label || label.value.trim() === "") {
+          if (label) {
+            label.focus();
+          }
+          return;
+        }
+        var submit = form.querySelector('button[type="submit"]');
+        var previous = submit ? submit.value : "";
+        if (submit) {
+          submit.value = "optie-nieuw";
+        }
+        if (window.kotharEnsureCsrf) {
+          window.kotharEnsureCsrf(form);
+        }
+        if (form.requestSubmit && submit) {
+          form.requestSubmit(submit);
+        } else if (form.requestSubmit) {
+          form.requestSubmit();
+        } else {
+          form.submit();
+        }
+        if (submit) {
+          submit.value = previous;
+        }
+      });
+    }
+  });
+
+  bindSort(list, function (event) {
+    if (!document.body.classList.contains("is-reordering")) {
+      return null;
+    }
+    var summary = event.target.closest("summary");
+    if (!summary || !list.contains(summary)) {
+      return null;
+    }
+    return summary.closest("[data-column]");
+  }, persistColumnOrder);
+
+  Array.prototype.forEach.call(document.querySelectorAll("form[data-save-actie]"), function (form) {
+    form.addEventListener("input", function () {
+      syncDirty(form);
+    });
+  });
+
+  if (button) {
+    button.addEventListener("click", function () {
+      if (document.body.classList.contains("is-reordering")) {
+        setReordering(false);
+        return;
+      }
+      if (!anyDirty()) {
+        setReordering(true);
+        return;
+      }
+      openUnsaved(function (choice) {
+        if (choice === "save") {
+          button.disabled = true;
+          saveDirtyThenReorder().catch(function (error) {
+            button.disabled = false;
+            showError(error.message || "Opslaan mislukt.");
+          });
+          return;
+        }
+        if (choice === "discard") {
+          window.location = reorderUrl();
+        }
+      });
+    });
+  }
+
+  function openUnsaved(done) {
+    if (typeof HTMLDialogElement === "undefined") {
+      if (window.confirm("Er zijn niet-opgeslagen wijzigingen. OK verwerpt ze en past de volgorde aan.")) {
+        done("discard");
+      }
+      return;
+    }
+    var dialog = document.createElement("dialog");
+    dialog.className = "modal";
+    dialog.innerHTML = ""
+      + '<div class="modal-card">'
+      + "<h2>Niet-opgeslagen wijzigingen</h2>"
+      + "<p>Er zijn niet-opgeslagen wijzigingen. Wil je die opslaan of verwerpen voordat je de volgorde aanpast?</p>"
+      + '<div class="modal-actions">'
+      + '<button type="button" class="quiet" data-cancel>Annuleren</button>'
+      + '<button type="button" class="quiet" data-discard>Verwerpen</button>'
+      + '<button type="button" data-save>Opslaan</button>'
+      + "</div></div>";
+    document.body.appendChild(dialog);
+    var cancel = dialog.querySelector("[data-cancel]");
+    var discard = dialog.querySelector("[data-discard]");
+    var save = dialog.querySelector("[data-save]");
+    function close(choice) {
+      dialog.close();
+      dialog.remove();
+      done(choice);
+    }
+    cancel.addEventListener("click", function () { close(""); });
+    discard.addEventListener("click", function () { close("discard"); });
+    save.addEventListener("click", function () { close("save"); });
+    dialog.addEventListener("cancel", function () { done(""); });
+    dialog.addEventListener("click", function (event) {
+      if (event.target === dialog) {
+        close("");
+      }
+    });
+    dialog.showModal();
+    cancel.focus();
+  }
 })();

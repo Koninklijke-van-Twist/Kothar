@@ -77,6 +77,7 @@ De job weigert te deployen als dat secret leeg is of geen pad onder `/var/www/ht
 
 ```bash
 php tests/composition_test.php
+php tests/admin_test.php
 bash tests/guard_ftp_remote_dir_test.sh
 ```
 
