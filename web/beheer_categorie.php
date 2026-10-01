@@ -265,7 +265,7 @@ foreach ($columns as $column) {
         : 'Weet je zeker dat je de kolom ' . $columnName . ' wilt verwijderen?';
     echo '<details class="column-panel" data-column data-column-id="' . kothar_h($columnId) . '">';
     echo '<summary>';
-    echo '<span class="drag-handle" data-column-handle aria-label="Versleep kolom"' . ($reorder ? '' : ' hidden') . '><span></span><span></span><span></span></span>';
+    echo '<span class="drag-handle" data-column-handle role="button" tabindex="0" aria-label="Versleep kolom"' . ($reorder ? '' : ' hidden') . '><span></span><span></span><span></span></span>';
     echo '<span class="column-name">' . kothar_h($columnName === '' ? 'Kolom' : $columnName) . '</span>';
     echo '</summary>';
     echo '<div class="column-body"><form method="post" class="column-form" data-column-form data-save-actie="kolom-bewaar">';
