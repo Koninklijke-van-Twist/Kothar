@@ -80,6 +80,13 @@
   if (!form) {
     return;
   }
+  Array.prototype.forEach.call(form.querySelectorAll("[data-fill]"), function (fill) {
+    var next = String(fill.value || "").replace(/\s+/g, "");
+    if (next !== fill.value) {
+      fill.value = next;
+      fill.defaultValue = next;
+    }
+  });
   var shell = form.closest(".builder-shell") || form;
   var live = shell.querySelector("[data-code-live]");
   var progress = shell.querySelector("[data-progress]");
@@ -119,7 +126,97 @@
     return /^hsl\(\d{1,3} 62% 36%\)$/.test(color) ? color : "";
   }
 
+  function meterToken(raw) {
+    var text = String(raw == null ? "" : raw).replace(/\s+/g, "").replace(",", ".");
+    if (!/^\d+(?:\.\d+)?$/.test(text)) {
+      return "";
+    }
+    if (text.indexOf(".") !== -1) {
+      text = text.replace(/0+$/, "").replace(/\.$/, "");
+    }
+    return text;
+  }
+
+  function measureBox(step, mode) {
+    return step.querySelector('[data-measures="' + mode + '"]');
+  }
+
+  function measureValue(box, name) {
+    var input = box ? box.querySelector('[data-measure="' + name + '"]') : null;
+    return meterToken(input ? input.value : "");
+  }
+
+  function syncMeasures(step) {
+    var kind = step.getAttribute("data-kind") || "choices";
+    if (kind !== "dimensions") {
+      return;
+    }
+    var radio = step.querySelector("input[data-vector]:checked");
+    var mode = radio ? (radio.getAttribute("data-vector") || "") : "";
+    Array.prototype.forEach.call(step.querySelectorAll("[data-measures]"), function (box) {
+      var on = box.getAttribute("data-measures") === mode && mode !== "";
+      box.hidden = !on;
+      Array.prototype.forEach.call(box.querySelectorAll("input"), function (input) {
+        input.disabled = !on;
+      });
+    });
+  }
+
   function selectionOf(step) {
+    var kind = step.getAttribute("data-kind") || "choices";
+    if (kind === "quantity") {
+      var qty = step.querySelector("[data-quantity]");
+      var qtyCode = qty ? String(qty.value || "").replace(/\s+/g, "") : "";
+      if (!/^\d+$/.test(qtyCode)) {
+        qtyCode = "";
+      }
+      var prompt = step.getAttribute("data-prompt") || "Vul quantity in";
+      return {
+        valid: qtyCode !== "",
+        code: qtyCode,
+        label: qtyCode !== "" ? qtyCode : prompt,
+        color: qtyCode !== "" ? kotharSegmentColor(qtyCode) : "",
+        needsFill: true,
+        radio: null
+      };
+    }
+    if (kind === "hwl" || kind === "diameter" || kind === "dimensions") {
+      syncMeasures(step);
+      var mode = kind;
+      var vectorRadio = null;
+      if (kind === "dimensions") {
+        vectorRadio = step.querySelector("input[data-vector]:checked");
+        mode = vectorRadio ? (vectorRadio.getAttribute("data-vector") || "") : "";
+      }
+      var box = mode === "hwl" || mode === "diameter" ? measureBox(step, mode) : null;
+      var vectorCode = "";
+      if (mode === "hwl") {
+        var height = measureValue(box, "h");
+        var width = measureValue(box, "b");
+        var length = measureValue(box, "l");
+        if (height !== "" && width !== "" && length !== "") {
+          vectorCode = "H" + height + "xB" + width + "xL" + length;
+        }
+      } else if (mode === "diameter") {
+        var diameter = measureValue(box, "d");
+        var diaLength = measureValue(box, "l");
+        if (diameter !== "" && diaLength !== "") {
+          vectorCode = "⌀" + diameter + "xL" + diaLength;
+        }
+      }
+      var vectorLabel = vectorCode;
+      if (vectorLabel === "") {
+        vectorLabel = mode === "" ? "Kies ⌀×L of H×B×L" : "Vul de maten in";
+      }
+      return {
+        valid: vectorCode !== "",
+        code: vectorCode,
+        label: vectorLabel,
+        color: vectorCode !== "" ? kotharSegmentColor(vectorCode) : "",
+        needsFill: true,
+        radio: vectorRadio
+      };
+    }
     var radio = step.querySelector('input[type="radio"]:checked');
     var fill = step.querySelector("[data-fill]");
     if (!radio) {
@@ -127,7 +224,7 @@
     }
     var needsFill = radio.getAttribute("data-needs-fill") === "1";
     var label = radio.getAttribute("data-label") || "";
-    var code = needsFill ? (fill ? fill.value.trim() : "") : (radio.getAttribute("data-code") || "");
+    var code = needsFill ? (fill ? String(fill.value || "").replace(/\s+/g, "") : "") : (radio.getAttribute("data-code") || "");
     var color = "";
     if (code !== "") {
       color = needsFill ? kotharSegmentColor(code) : (radio.getAttribute("data-color") || kotharSegmentColor(code));
@@ -155,7 +252,8 @@
     var current = step.querySelector("[data-current]");
     if (current) {
       var text = state.label || "Kies…";
-      if (state.needsFill && state.code) {
+      var kind = step.getAttribute("data-kind") || "choices";
+      if (kind === "choices" && state.needsFill && state.code) {
         text += " · " + state.code;
       }
       current.textContent = text;
@@ -455,6 +553,13 @@
       renderCode();
       syncUrl();
       scheduleResult();
+      if (target.hasAttribute("data-vector")) {
+        var box = step.querySelector('[data-measures="' + target.getAttribute("data-vector") + '"]');
+        var first = box ? box.querySelector("[data-measure]") : null;
+        if (first) {
+          first.focus({ preventScroll: true });
+        }
+      }
     });
     Array.prototype.forEach.call(step.querySelectorAll(".option-card"), function (card) {
       card.addEventListener("click", function () {
@@ -486,6 +591,28 @@
         skipAdvance = false;
         commitFill(step, allow);
       }, 180);
+    });
+    Array.prototype.forEach.call(step.querySelectorAll("[data-measure], [data-quantity]"), function (input) {
+      input.addEventListener("input", function () {
+        syncStep(step);
+        renderCode();
+        syncUrl();
+        scheduleResult();
+      });
+      input.addEventListener("keydown", function (event) {
+        if (event.key !== "Enter") {
+          return;
+        }
+        event.preventDefault();
+        commitFill(step, true);
+      });
+      input.addEventListener("blur", function () {
+        window.setTimeout(function () {
+          var allow = !skipAdvance;
+          skipAdvance = false;
+          commitFill(step, allow);
+        }, 180);
+      });
     });
   });
 
@@ -820,6 +947,9 @@
   }
 
   function postForm(form) {
+    if (window.kotharStripCodes) {
+      window.kotharStripCodes(form);
+    }
     if (window.kotharEnsureCsrf) {
       window.kotharEnsureCsrf(form);
     }
@@ -1140,4 +1270,107 @@
     dialog.showModal();
     cancel.focus();
   }
+})();
+
+(function () {
+  function isCodeField(field) {
+    return !!(field && field.matches && field.matches('input[name="code[]"], input[data-fill]'));
+  }
+
+  function stripField(field) {
+    var raw = String(field.value || "");
+    var next = raw.replace(/\s+/g, "");
+    if (next === raw) {
+      return;
+    }
+    var start = field.selectionStart;
+    var end = field.selectionEnd;
+    field.value = next;
+    if (document.activeElement !== field || start == null || !field.setSelectionRange) {
+      return;
+    }
+    var before = raw.slice(0, start).replace(/\s+/g, "").length;
+    var span = raw.slice(start, end == null ? start : end).replace(/\s+/g, "").length;
+    field.setSelectionRange(before, before + span);
+  }
+
+  function stripRoot(root) {
+    var scope = root && root.querySelectorAll ? root : document;
+    Array.prototype.forEach.call(scope.querySelectorAll('input[name="code[]"], input[data-fill]'), stripField);
+  }
+
+  window.kotharStripCodes = stripRoot;
+
+  document.addEventListener("input", function (event) {
+    if (isCodeField(event.target)) {
+      stripField(event.target);
+    }
+  }, true);
+
+  document.addEventListener("submit", function (event) {
+    var form = event.target;
+    if (form && form.querySelectorAll) {
+      stripRoot(form);
+    }
+  }, true);
+})();
+
+(function () {
+  var openButton = document.querySelector("[data-category-edit]");
+  var dialog = document.querySelector("[data-category-modal]");
+  if (!openButton || !dialog) {
+    return;
+  }
+  var form = dialog.querySelector("form");
+  var cancel = dialog.querySelector("[data-category-cancel]");
+  var nameInput = dialog.querySelector("#naam");
+
+  function resetForm() {
+    if (!form) {
+      return;
+    }
+    form.reset();
+    form.dispatchEvent(new Event("input", { bubbles: true }));
+  }
+
+  function openModal() {
+    if (typeof dialog.showModal === "function") {
+      if (!dialog.open) {
+        dialog.showModal();
+      }
+    } else {
+      dialog.setAttribute("open", "");
+    }
+    openButton.setAttribute("aria-expanded", "true");
+    if (nameInput) {
+      nameInput.focus();
+    }
+  }
+
+  function closeModal() {
+    resetForm();
+    if (dialog.open && typeof dialog.close === "function") {
+      dialog.close();
+    } else {
+      dialog.removeAttribute("open");
+    }
+    openButton.setAttribute("aria-expanded", "false");
+  }
+
+  openButton.addEventListener("click", openModal);
+  if (cancel) {
+    cancel.addEventListener("click", closeModal);
+  }
+  dialog.addEventListener("cancel", function () {
+    resetForm();
+    openButton.setAttribute("aria-expanded", "false");
+  });
+  dialog.addEventListener("close", function () {
+    openButton.setAttribute("aria-expanded", "false");
+  });
+  dialog.addEventListener("click", function (event) {
+    if (event.target === dialog) {
+      closeModal();
+    }
+  });
 })();

@@ -73,6 +73,28 @@ a:hover { color: var(--rust); }
 
 main { padding: 1.4rem 0 3rem; }
 h1 { font-size: 1.8rem; line-height: 1.2; margin: 0 0 0.4rem; }
+h1 button.category-edit-title {
+  display: inline;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.14em;
+  text-decoration-color: rgba(28, 36, 48, 0.35);
+}
+h1 button.category-edit-title:hover,
+h1 button.category-edit-title:focus-visible {
+  background: transparent;
+  color: var(--navy-2);
+  text-decoration-color: currentColor;
+}
 h2 { font-size: 1.2rem; margin: 0 0 0.6rem; }
 .lead { color: var(--muted); max-width: 44rem; }
 .hint { color: var(--muted); font-size: 0.92rem; }
@@ -473,6 +495,37 @@ body.is-reordering .column-panel summary::after { display: none; }
 }
 .option-card:focus-within { outline: 2px solid var(--navy-2); outline-offset: 2px; }
 .step-fill { display: grid; gap: 0.3rem; margin-top: 0.75rem; }
+.quantity-fill { display: grid; gap: 0.3rem; max-width: 16rem; }
+.quantity-fill input { max-width: none; }
+.measure-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 0.7rem;
+}
+.measure-grid[hidden] { display: none; }
+.measure-grid input { max-width: none; }
+.mode-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0 0 0.75rem;
+}
+.mode-option {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0.55rem 0.75rem;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  cursor: pointer;
+}
+.mode-option input { width: auto; max-width: none; }
+.mode-option:has(input:checked) {
+  border-color: var(--navy);
+  box-shadow: inset 0 0 0 1px var(--navy);
+}
 .step-fill[hidden] { display: none; }
 .step-fill input { max-width: none; scroll-margin-top: 7rem; }
 .fill-error { color: var(--rust); margin: 0; }
@@ -520,6 +573,14 @@ body.is-reordering .column-panel summary::after { display: none; }
 .modal-card button.quiet:hover { background: #fff; color: var(--navy-2); }
 .modal-card button.danger { background: var(--rust); color: #fff; }
 .modal-card button.danger:hover { background: #7d3b1b; }
+.modal-card.category-meta {
+  display: grid;
+  gap: 0.55rem;
+  width: min(36rem, 100%);
+}
+.modal-card.category-meta h2 { margin: 0; }
+.modal-card.category-meta input,
+.modal-card.category-meta textarea { max-width: none; }
 
 @media (min-width: 720px) {
   .option-grid { grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); }
