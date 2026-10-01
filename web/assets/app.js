@@ -593,9 +593,21 @@
     return meta ? (meta.getAttribute("content") || "") : "";
   }
 
-  function ensure(form) {
+  function sameOriginPost(form, action) {
+    if (!form || String(form.method || "").toLowerCase() !== "post") {
+      return false;
+    }
+    var target = typeof action === "string" && action !== "" ? action : (form.action || "");
+    try {
+      return new URL(target, window.location.href).origin === window.location.origin;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  function ensure(form, action) {
     var value = token();
-    if (!form || value === "") {
+    if (!form || value === "" || !sameOriginPost(form, action)) {
       return value;
     }
     var input = form.querySelector('input[name="csrf"]');
@@ -613,9 +625,15 @@
 
   document.addEventListener("submit", function (event) {
     var form = event.target;
-    if (form && form.tagName === "FORM") {
-      ensure(form);
+    if (!form || form.tagName !== "FORM") {
+      return;
     }
+    var action = "";
+    var submitter = event.submitter;
+    if (submitter && submitter.hasAttribute && submitter.hasAttribute("formaction")) {
+      action = submitter.formAction || "";
+    }
+    ensure(form, action);
   }, true);
   window.kotharCsrf = token;
   window.kotharEnsureCsrf = ensure;
@@ -938,6 +956,31 @@
       document.addEventListener("pointermove", move);
       document.addEventListener("pointerup", finish);
       document.addEventListener("pointercancel", finish);
+    });
+
+    container.addEventListener("keydown", function (event) {
+      if (event.key !== "ArrowUp" && event.key !== "ArrowDown") {
+        return;
+      }
+      var item = canStart(event);
+      if (!item || item.parentElement !== container) {
+        return;
+      }
+      event.preventDefault();
+      var moved = false;
+      if (event.key === "ArrowUp" && item.previousElementSibling) {
+        container.insertBefore(item, item.previousElementSibling);
+        moved = true;
+      } else if (event.key === "ArrowDown" && item.nextElementSibling) {
+        container.insertBefore(item.nextElementSibling, item);
+        moved = true;
+      }
+      if (event.target && typeof event.target.focus === "function") {
+        event.target.focus();
+      }
+      if (moved) {
+        onUpdate();
+      }
     });
   }
 
