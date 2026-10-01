@@ -1,0 +1,8 @@
+{
+    "name": "Kothar",
+    "short_name": "Kothar",
+    "start_url": "./",
+    "display": "standalone",
+    "background_color": "#f6f3ec",
+    "theme_color": "#1b3a4b"
+}
