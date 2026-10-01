@@ -1,0 +1,19 @@
+# Serverconfig met beheerders. Nooit committen.
+web/auth.php
+
+# Runtime-data. De seed en de toegangsblokkade blijven in git.
+web/data/*
+!web/data/.gitkeep
+!web/data/.htaccess
+!web/data/categories.seed.json
+!web/data/attachments/
+web/data/attachments/*
+!web/data/attachments/.gitkeep
+!web/data/attachments/.htaccess
+
+# OS-rommel
+.DS_Store
+Thumbs.db
+desktop.ini
+*~
+*.swp

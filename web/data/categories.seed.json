@@ -1,0 +1,2716 @@
+{
+  "version": 1,
+  "source": "Excel-blad Deliverables. Optiecodes zijn de vette tekens (ook als die de celopmaak erven).",
+  "rules": {
+    "status": "later",
+    "note": "Compatibiliteit tussen opties, verplichte keuzes en notities op de infopagina zijn nog niet geïmplementeerd."
+  },
+  "categories": [
+    {
+      "id": "universal",
+      "name": "Universal",
+      "description": "Algemene kenmerken: fluid, geluidsgrens, omgeving, KIWA-omgeving, ruimte (afmeting en afstand), documentatie, mechanische kleur en kabelinvoer.",
+      "rules": [],
+      "columns": [
+        {
+          "id": "universal-c1",
+          "name": "Fluid",
+          "hint": "F/U/G",
+          "options": [
+            {
+              "label": "Fuel",
+              "code": "F",
+              "description": "Fuel",
+              "id": "universal-c1-o1"
+            },
+            {
+              "label": "Ureal",
+              "code": "U",
+              "description": "Ureal",
+              "id": "universal-c1-o2"
+            },
+            {
+              "label": "Glicol%",
+              "code": "G",
+              "description": "Glicol%",
+              "id": "universal-c1-o3"
+            }
+          ]
+        },
+        {
+          "id": "universal-c2",
+          "name": "Sound Limit",
+          "hint": "ST/NS",
+          "options": [
+            {
+              "label": "Standard",
+              "code": "ST",
+              "description": "Standard",
+              "id": "universal-c2-o1"
+            },
+            {
+              "label": "NonStandard",
+              "code": "NS",
+              "description": "NonStandard",
+              "id": "universal-c2-o2"
+            }
+          ]
+        },
+        {
+          "id": "universal-c3",
+          "name": "Environment",
+          "hint": "ST/NS",
+          "options": [
+            {
+              "label": "Standard",
+              "code": "ST",
+              "description": "Standard",
+              "id": "universal-c3-o1"
+            },
+            {
+              "label": "NonStandard",
+              "code": "NS",
+              "description": "NonStandard",
+              "id": "universal-c3-o2"
+            }
+          ]
+        },
+        {
+          "id": "universal-c4",
+          "name": "Environment (KIWA)",
+          "hint": "ST/NS",
+          "options": [
+            {
+              "label": "Standard",
+              "code": "ST",
+              "description": "Standard",
+              "id": "universal-c4-o1"
+            },
+            {
+              "label": "NonStandard",
+              "code": "NS",
+              "description": "NonStandard",
+              "id": "universal-c4-o2"
+            }
+          ]
+        },
+        {
+          "id": "universal-c5",
+          "name": "Room specs (size)",
+          "hint": "[HxWxL]",
+          "options": [
+            {
+              "label": "HeightxWidthxLength",
+              "code": "HWL",
+              "description": "HeightxWidthxLength",
+              "id": "universal-c5-o1"
+            }
+          ]
+        },
+        {
+          "id": "universal-c6",
+          "name": "Room specs (dist)",
+          "hint": "ST/NS",
+          "options": [
+            {
+              "label": "Standard (<100m)",
+              "code": "ST",
+              "description": "Standard (<100m)",
+              "id": "universal-c6-o1"
+            },
+            {
+              "label": "NonStandard (>100m)",
+              "code": "NS",
+              "description": "NonStandard (>100m)",
+              "id": "universal-c6-o2"
+            }
+          ]
+        },
+        {
+          "id": "universal-c7",
+          "name": "Documentation",
+          "hint": "ST/NS",
+          "options": [
+            {
+              "label": "Standard",
+              "code": "ST",
+              "description": "Standard",
+              "id": "universal-c7-o1"
+            },
+            {
+              "label": "NonStandard",
+              "code": "NS",
+              "description": "NonStandard",
+              "id": "universal-c7-o2"
+            }
+          ]
+        },
+        {
+          "id": "universal-c8",
+          "name": "Mech. Colour",
+          "hint": "ST/NS",
+          "options": [
+            {
+              "label": "Standard",
+              "code": "ST",
+              "description": "Standard",
+              "id": "universal-c8-o1"
+            },
+            {
+              "label": "NonStandard",
+              "code": "NS",
+              "description": "NonStandard",
+              "id": "universal-c8-o2"
+            }
+          ]
+        },
+        {
+          "id": "universal-c9",
+          "name": "Cable entry",
+          "hint": "T/B",
+          "options": [
+            {
+              "label": "Top",
+              "code": "T",
+              "description": "Top",
+              "id": "universal-c9-o1"
+            },
+            {
+              "label": "Bottom",
+              "code": "B",
+              "description": "Bottom",
+              "id": "universal-c9-o2"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "filling-point",
+      "name": "Filling Point",
+      "description": "Vulpunt: locatie, aantal vulpunten, kap, lekbak, alarmbox en radarsturing.",
+      "rules": [],
+      "columns": [
+        {
+          "id": "filling-point-c1",
+          "name": "Location",
+          "hint": "I/O/T",
+          "options": [
+            {
+              "label": "Indoor",
+              "code": "I",
+              "description": "Indoor",
+              "id": "filling-point-c1-o1"
+            },
+            {
+              "label": "Outdoor",
+              "code": "O",
+              "description": "Outdoor",
+              "id": "filling-point-c1-o2"
+            },
+            {
+              "label": "On Tank",
+              "code": "T",
+              "description": "On Tank",
+              "id": "filling-point-c1-o3"
+            }
+          ]
+        },
+        {
+          "id": "filling-point-c2",
+          "name": "No. of filling points",
+          "hint": "1/2/3/4",
+          "options": [
+            {
+              "label": "1",
+              "code": "1",
+              "description": "1",
+              "id": "filling-point-c2-o1"
+            },
+            {
+              "label": "2",
+              "code": "2",
+              "description": "2",
+              "id": "filling-point-c2-o2"
+            },
+            {
+              "label": "3",
+              "code": "3",
+              "description": "3",
+              "id": "filling-point-c2-o3"
+            },
+            {
+              "label": "4",
+              "code": "4",
+              "description": "4",
+              "id": "filling-point-c2-o4"
+            }
+          ]
+        },
+        {
+          "id": "filling-point-c3",
+          "name": "Hood type",
+          "hint": "WS/NS/DC",
+          "options": [
+            {
+              "label": "With Springs",
+              "code": "WS",
+              "description": "With Springs",
+              "id": "filling-point-c3-o1"
+            },
+            {
+              "label": "No Springs",
+              "code": "NS",
+              "description": "No Springs",
+              "id": "filling-point-c3-o2"
+            },
+            {
+              "label": "Door Contact",
+              "code": "DC",
+              "description": "Door Contact",
+              "id": "filling-point-c3-o3"
+            }
+          ]
+        },
+        {
+          "id": "filling-point-c4",
+          "name": "Leakage Tray",
+          "hint": "05L/65G/65T/65A",
+          "options": [
+            {
+              "label": "05 Liters",
+              "code": "05 L",
+              "description": "05 Liters",
+              "id": "filling-point-c4-o1"
+            },
+            {
+              "label": "65 Ground",
+              "code": "65 G",
+              "description": "65 Ground",
+              "id": "filling-point-c4-o2"
+            },
+            {
+              "label": "65 Through wall",
+              "code": "65 T",
+              "description": "65 Through wall",
+              "id": "filling-point-c4-o3"
+            },
+            {
+              "label": "65 Against wall",
+              "code": "65 A",
+              "description": "65 Against wall",
+              "id": "filling-point-c4-o4"
+            }
+          ]
+        },
+        {
+          "id": "filling-point-c5",
+          "name": "Alarm Box",
+          "hint": "Y/N",
+          "options": [
+            {
+              "label": "Yes",
+              "code": "Y",
+              "description": "Yes",
+              "id": "filling-point-c5-o1"
+            },
+            {
+              "label": "No",
+              "code": "N",
+              "description": "No",
+              "id": "filling-point-c5-o2"
+            }
+          ]
+        },
+        {
+          "id": "filling-point-c6",
+          "name": "Radar Ctrl",
+          "hint": "Y/N",
+          "options": [
+            {
+              "label": "Yes",
+              "code": "Y",
+              "description": "Yes",
+              "id": "filling-point-c6-o1"
+            },
+            {
+              "label": "No",
+              "code": "N",
+              "description": "No",
+              "id": "filling-point-c6-o2"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tanks",
+      "name": "Tanks",
+      "description": "Tank: locatie, materiaal, vorm, afmetingen, ventilatie, wanden, lekdetectie, niveaumeting, klemmenkast, overvulbeveiliging, verwarming en aantal.",
+      "rules": [],
+      "columns": [
+        {
+          "id": "tanks-c1",
+          "name": "Location",
+          "hint": "I/O/U",
+          "options": [
+            {
+              "label": "Indoor",
+              "code": "I",
+              "description": "Indoor",
+              "id": "tanks-c1-o1"
+            },
+            {
+              "label": "Outdoor",
+              "code": "O",
+              "description": "Outdoor",
+              "id": "tanks-c1-o2"
+            },
+            {
+              "label": "Underground",
+              "code": "U",
+              "description": "Underground",
+              "id": "tanks-c1-o3"
+            }
+          ]
+        },
+        {
+          "id": "tanks-c2",
+          "name": "Material",
+          "hint": "SC/SS/RU",
+          "options": [
+            {
+              "label": "Steel Coated",
+              "code": "SC",
+              "description": "Steel Coated",
+              "id": "tanks-c2-o1"
+            },
+            {
+              "label": "Stainless Steel",
+              "code": "SS",
+              "description": "Stainless Steel",
+              "id": "tanks-c2-o2"
+            },
+            {
+              "label": "Rubber",
+              "code": "RU",
+              "description": "Rubber",
+              "id": "tanks-c2-o3"
+            }
+          ]
+        },
+        {
+          "id": "tanks-c3",
+          "name": "Shape",
+          "hint": "C/P",
+          "options": [
+            {
+              "label": "Cylindrical",
+              "code": "C",
+              "description": "Cylindrical",
+              "id": "tanks-c3-o1"
+            },
+            {
+              "label": "Prisma",
+              "code": "P",
+              "description": "Prisma",
+              "id": "tanks-c3-o2"
+            }
+          ]
+        },
+        {
+          "id": "tanks-c4",
+          "name": "Dimensions",
+          "hint": "[⌀xL] / [HxWxL]",
+          "options": [
+            {
+              "label": "⌀diameterxLength",
+              "code": "⌀xL",
+              "description": "⌀diameterxLength",
+              "id": "tanks-c4-o1"
+            },
+            {
+              "label": "HeightxWidthxLength",
+              "code": "HWL",
+              "description": "HeightxWidthxLength",
+              "id": "tanks-c4-o2"
+            }
+          ]
+        },
+        {
+          "id": "tanks-c5",
+          "name": "Ventilation",
+          "hint": "FA/SG/NR",
+          "options": [
+            {
+              "label": "Flame Arrester",
+              "code": "FA",
+              "description": "Flame Arrester",
+              "id": "tanks-c5-o1"
+            },
+            {
+              "label": "Silica Gel venting filter",
+              "code": "SG",
+              "description": "Silica Gel venting filter",
+              "id": "tanks-c5-o2"
+            },
+            {
+              "label": "NRV",
+              "code": "NR",
+              "description": "NRV",
+              "id": "tanks-c5-o3"
+            }
+          ]
+        },
+        {
+          "id": "tanks-c6",
+          "name": "Walls",
+          "hint": "S/D",
+          "options": [
+            {
+              "label": "Single",
+              "code": "S",
+              "description": "Single",
+              "id": "tanks-c6-o1"
+            },
+            {
+              "label": "Double",
+              "code": "D",
+              "description": "Double",
+              "id": "tanks-c6-o2"
+            }
+          ]
+        },
+        {
+          "id": "tanks-c7",
+          "name": "Leakage detection",
+          "hint": "T/V/O",
+          "options": [
+            {
+              "label": "Drip Tray",
+              "code": "T",
+              "description": "Drip Tray",
+              "id": "tanks-c7-o1"
+            },
+            {
+              "label": "Vacuum",
+              "code": "V",
+              "description": "Vacuum",
+              "id": "tanks-c7-o2"
+            },
+            {
+              "label": "Optical",
+              "code": "O",
+              "description": "Optical",
+              "id": "tanks-c7-o3"
+            }
+          ]
+        },
+        {
+          "id": "tanks-c8",
+          "name": "Level meas.",
+          "hint": "1C/2C/3C/4C/R",
+          "options": [
+            {
+              "label": "1Contact",
+              "code": "1C",
+              "description": "1Contact",
+              "id": "tanks-c8-o1"
+            },
+            {
+              "label": "2Contact",
+              "code": "2C",
+              "description": "2Contact",
+              "id": "tanks-c8-o2"
+            },
+            {
+              "label": "3Contact",
+              "code": "3C",
+              "description": "3Contact",
+              "id": "tanks-c8-o3"
+            },
+            {
+              "label": "4Contact",
+              "code": "4C",
+              "description": "4Contact",
+              "id": "tanks-c8-o4"
+            },
+            {
+              "label": "Radar",
+              "code": "R",
+              "description": "Radar",
+              "id": "tanks-c8-o5"
+            }
+          ]
+        },
+        {
+          "id": "tanks-c9",
+          "name": "Terminal Box",
+          "hint": "Y/N",
+          "options": [
+            {
+              "label": "Yes",
+              "code": "Y",
+              "description": "Yes",
+              "id": "tanks-c9-o1"
+            },
+            {
+              "label": "No",
+              "code": "N",
+              "description": "No",
+              "id": "tanks-c9-o2"
+            }
+          ]
+        },
+        {
+          "id": "tanks-c10",
+          "name": "Overfilling Protection",
+          "hint": "L/F/M",
+          "options": [
+            {
+              "label": "Sensor (Level HH)",
+              "code": "L",
+              "description": "Sensor (Level HH)",
+              "id": "tanks-c10-o1"
+            },
+            {
+              "label": "Sensor (FAFNIR)",
+              "code": "F",
+              "description": "Sensor (FAFNIR)",
+              "id": "tanks-c10-o2"
+            },
+            {
+              "label": "Mechanical",
+              "code": "M",
+              "description": "Mechanical",
+              "id": "tanks-c10-o3"
+            }
+          ]
+        },
+        {
+          "id": "tanks-c11",
+          "name": "Heating Resistor",
+          "hint": "Y/N",
+          "options": [
+            {
+              "label": "Yes",
+              "code": "Y",
+              "description": "Yes",
+              "id": "tanks-c11-o1"
+            },
+            {
+              "label": "No",
+              "code": "N",
+              "description": "No",
+              "id": "tanks-c11-o2"
+            }
+          ]
+        },
+        {
+          "id": "tanks-c12",
+          "name": "Quantity",
+          "hint": "[XX]",
+          "options": [
+            {
+              "label": "00 to 99",
+              "code": "",
+              "description": "00 to 99 — geen vette code in het bronblad; vul bij het samenstellen een code in.",
+              "id": "tanks-c12-o1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "transport-lines",
+      "name": "Transport Lines",
+      "description": "Transportleiding (brandstof/ureum): van, naar, locatie, materiaal, afmetingen, wand/isolatie, afsluiters, sensoren en heat tracing.",
+      "rules": [],
+      "columns": [
+        {
+          "id": "transport-lines-c1",
+          "name": "From",
+          "hint": "DT/ST/PS/PO/GS",
+          "options": [
+            {
+              "label": "DayTank",
+              "code": "DT",
+              "description": "DayTank",
+              "id": "transport-lines-c1-o1"
+            },
+            {
+              "label": "StorageTank",
+              "code": "ST",
+              "description": "StorageTank",
+              "id": "transport-lines-c1-o2"
+            },
+            {
+              "label": "PumpSkid",
+              "code": "PS",
+              "description": "PumpSkid",
+              "id": "transport-lines-c1-o3"
+            },
+            {
+              "label": "Polisher",
+              "code": "PO",
+              "description": "Polisher",
+              "id": "transport-lines-c1-o4"
+            },
+            {
+              "label": "GenSet",
+              "code": "GS",
+              "description": "GenSet",
+              "id": "transport-lines-c1-o5"
+            }
+          ]
+        },
+        {
+          "id": "transport-lines-c2",
+          "name": "To",
+          "hint": "DT/ST/PS/PO/GS",
+          "options": [
+            {
+              "label": "DayTank",
+              "code": "DT",
+              "description": "DayTank",
+              "id": "transport-lines-c2-o1"
+            },
+            {
+              "label": "StorageTank",
+              "code": "ST",
+              "description": "StorageTank",
+              "id": "transport-lines-c2-o2"
+            },
+            {
+              "label": "PumpSkid",
+              "code": "PS",
+              "description": "PumpSkid",
+              "id": "transport-lines-c2-o3"
+            },
+            {
+              "label": "Polisher",
+              "code": "PO",
+              "description": "Polisher",
+              "id": "transport-lines-c2-o4"
+            },
+            {
+              "label": "GenSet",
+              "code": "GS",
+              "description": "GenSet",
+              "id": "transport-lines-c2-o5"
+            }
+          ]
+        },
+        {
+          "id": "transport-lines-c3",
+          "name": "Location",
+          "hint": "I/O/U",
+          "options": [
+            {
+              "label": "Indoor",
+              "code": "I",
+              "description": "Indoor",
+              "id": "transport-lines-c3-o1"
+            },
+            {
+              "label": "Outdoor",
+              "code": "O",
+              "description": "Outdoor",
+              "id": "transport-lines-c3-o2"
+            },
+            {
+              "label": "Underground",
+              "code": "U",
+              "description": "Underground",
+              "id": "transport-lines-c3-o3"
+            }
+          ]
+        },
+        {
+          "id": "transport-lines-c4",
+          "name": "Material",
+          "hint": "GS/SS/RU",
+          "options": [
+            {
+              "label": "Galvanized Steel",
+              "code": "GS",
+              "description": "Galvanized Steel",
+              "id": "transport-lines-c4-o1"
+            },
+            {
+              "label": "Stainless Steel",
+              "code": "SS",
+              "description": "Stainless Steel",
+              "id": "transport-lines-c4-o2"
+            },
+            {
+              "label": "Rubber (EPDM)",
+              "code": "RU",
+              "description": "Rubber (EPDM)",
+              "id": "transport-lines-c4-o3"
+            }
+          ]
+        },
+        {
+          "id": "transport-lines-c5",
+          "name": "Dimensions",
+          "hint": "[⌀xL]",
+          "options": [
+            {
+              "label": "⌀diameterxLength",
+              "code": "⌀xL",
+              "description": "⌀diameterxLength",
+              "id": "transport-lines-c5-o1"
+            }
+          ]
+        },
+        {
+          "id": "transport-lines-c6",
+          "name": "Walls/Insulation",
+          "hint": "S/D/I",
+          "options": [
+            {
+              "label": "Single",
+              "code": "S",
+              "description": "Single",
+              "id": "transport-lines-c6-o1"
+            },
+            {
+              "label": "Double",
+              "code": "D",
+              "description": "Double",
+              "id": "transport-lines-c6-o2"
+            },
+            {
+              "label": "Insulation",
+              "code": "I",
+              "description": "Insulation",
+              "id": "transport-lines-c6-o3"
+            }
+          ]
+        },
+        {
+          "id": "transport-lines-c7",
+          "name": "Valves",
+          "hint": "F/A/D/R/N",
+          "options": [
+            {
+              "label": "Filling",
+              "code": "F",
+              "description": "Filling",
+              "id": "transport-lines-c7-o1"
+            },
+            {
+              "label": "Anti Siphon",
+              "code": "A",
+              "description": "Anti Siphon",
+              "id": "transport-lines-c7-o2"
+            },
+            {
+              "label": "Dump",
+              "code": "D",
+              "description": "Dump",
+              "id": "transport-lines-c7-o3"
+            },
+            {
+              "label": "Selection",
+              "code": "S",
+              "description": "Selection",
+              "id": "transport-lines-c7-o4"
+            },
+            {
+              "label": "Return",
+              "code": "R",
+              "description": "Return",
+              "id": "transport-lines-c7-o5"
+            },
+            {
+              "label": "No",
+              "code": "N",
+              "description": "No",
+              "id": "transport-lines-c7-o6"
+            }
+          ]
+        },
+        {
+          "id": "transport-lines-c8",
+          "name": "Sensors",
+          "hint": "F/N",
+          "options": [
+            {
+              "label": "Flow",
+              "code": "F",
+              "description": "Flow",
+              "id": "transport-lines-c8-o1"
+            },
+            {
+              "label": "No",
+              "code": "N",
+              "description": "No",
+              "id": "transport-lines-c8-o2"
+            }
+          ]
+        },
+        {
+          "id": "transport-lines-c9",
+          "name": "Heat Tracing",
+          "hint": "Y/N",
+          "options": [
+            {
+              "label": "Yes",
+              "code": "Y",
+              "description": "Yes",
+              "id": "transport-lines-c9-o1"
+            },
+            {
+              "label": "No",
+              "code": "N",
+              "description": "No",
+              "id": "transport-lines-c9-o2"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pump-skid",
+      "name": "Pump Skid",
+      "description": "Pompskid: locatie, afmetingen, filter, sensoren, afsluiters, redundantie, pompspecificatie en aantal.",
+      "rules": [],
+      "columns": [
+        {
+          "id": "pump-skid-c1",
+          "name": "Location",
+          "hint": "I/O",
+          "options": [
+            {
+              "label": "Indoor",
+              "code": "I",
+              "description": "Indoor",
+              "id": "pump-skid-c1-o1"
+            },
+            {
+              "label": "Outdoor",
+              "code": "O",
+              "description": "Outdoor",
+              "id": "pump-skid-c1-o2"
+            }
+          ]
+        },
+        {
+          "id": "pump-skid-c2",
+          "name": "Dimensions",
+          "hint": "[HxWxL]",
+          "options": [
+            {
+              "label": "HeightxWidthxLength",
+              "code": "HWL",
+              "description": "HeightxWidthxLength",
+              "id": "pump-skid-c2-o1"
+            }
+          ]
+        },
+        {
+          "id": "pump-skid-c3",
+          "name": "Filter",
+          "hint": "Y/N",
+          "options": [
+            {
+              "label": "Yes",
+              "code": "Y",
+              "description": "Yes",
+              "id": "pump-skid-c3-o1"
+            },
+            {
+              "label": "No",
+              "code": "N",
+              "description": "No",
+              "id": "pump-skid-c3-o2"
+            }
+          ]
+        },
+        {
+          "id": "pump-skid-c4",
+          "name": "Sensors",
+          "hint": "F/T/N",
+          "options": [
+            {
+              "label": "Flow",
+              "code": "F",
+              "description": "Flow",
+              "id": "pump-skid-c4-o1"
+            },
+            {
+              "label": "Drip Tray",
+              "code": "T",
+              "description": "Drip Tray",
+              "id": "pump-skid-c4-o2"
+            },
+            {
+              "label": "No",
+              "code": "N",
+              "description": "No",
+              "id": "pump-skid-c4-o3"
+            }
+          ]
+        },
+        {
+          "id": "pump-skid-c5",
+          "name": "Valves",
+          "hint": "A/D/N",
+          "options": [
+            {
+              "label": "AC",
+              "code": "A",
+              "description": "AC",
+              "id": "pump-skid-c5-o1"
+            },
+            {
+              "label": "DC",
+              "code": "D",
+              "description": "DC",
+              "id": "pump-skid-c5-o2"
+            },
+            {
+              "label": "No",
+              "code": "N",
+              "description": "No",
+              "id": "pump-skid-c5-o3"
+            }
+          ]
+        },
+        {
+          "id": "pump-skid-c6",
+          "name": "Redundancy",
+          "hint": "MS/MB/MV",
+          "options": [
+            {
+              "label": "Motor Single",
+              "code": "MS",
+              "description": "Motor Single",
+              "id": "pump-skid-c6-o1"
+            },
+            {
+              "label": "Motor Both",
+              "code": "MB",
+              "description": "Motor Both",
+              "id": "pump-skid-c6-o2"
+            },
+            {
+              "label": "Manual Valve",
+              "code": "MV",
+              "description": "Manual Valve",
+              "id": "pump-skid-c6-o3"
+            }
+          ]
+        },
+        {
+          "id": "pump-skid-c7",
+          "name": "Pump specs",
+          "hint": "[PN]",
+          "options": [
+            {
+              "label": "[Part Number]",
+              "code": "PN",
+              "description": "[Part Number]",
+              "id": "pump-skid-c7-o1"
+            }
+          ]
+        },
+        {
+          "id": "pump-skid-c8",
+          "name": "Quantity",
+          "hint": "[XX]",
+          "options": [
+            {
+              "label": "00 to 99",
+              "code": "",
+              "description": "00 to 99 — geen vette code in het bronblad; vul bij het samenstellen een code in.",
+              "id": "pump-skid-c8-o1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "fuel-polisher",
+      "name": "Fuel Polisher",
+      "description": "Fuel polisher: afmetingen, behuizing, tankinhoud, voeding/signalen, sensoren, lekdetectie, afsluiters en specificatie.",
+      "rules": [],
+      "columns": [
+        {
+          "id": "fuel-polisher-c1",
+          "name": "Dimensions",
+          "hint": "[HxWxL]",
+          "options": [
+            {
+              "label": "HeightxWidthxLength",
+              "code": "HWL",
+              "description": "HeightxWidthxLength",
+              "id": "fuel-polisher-c1-o1"
+            }
+          ]
+        },
+        {
+          "id": "fuel-polisher-c2",
+          "name": "Housing",
+          "hint": "Y/N",
+          "options": [
+            {
+              "label": "Yes",
+              "code": "Y",
+              "description": "Yes",
+              "id": "fuel-polisher-c2-o1"
+            },
+            {
+              "label": "No",
+              "code": "N",
+              "description": "No",
+              "id": "fuel-polisher-c2-o2"
+            }
+          ]
+        },
+        {
+          "id": "fuel-polisher-c3",
+          "name": "Capacity Storage Tank",
+          "hint": "[xL]",
+          "options": [
+            {
+              "label": "X liters",
+              "code": "",
+              "description": "X liters — geen vette code in het bronblad; vul bij het samenstellen een code in.",
+              "id": "fuel-polisher-c3-o1"
+            }
+          ]
+        },
+        {
+          "id": "fuel-polisher-c4",
+          "name": "Power/signals",
+          "hint": "1A/3A/DC",
+          "options": [
+            {
+              "label": "1-Phase AC",
+              "code": "1A",
+              "description": "1-Phase AC",
+              "id": "fuel-polisher-c4-o1"
+            },
+            {
+              "label": "3-Phase AC",
+              "code": "3A",
+              "description": "3-Phase AC",
+              "id": "fuel-polisher-c4-o2"
+            },
+            {
+              "label": "24VDC",
+              "code": "DC",
+              "description": "24VDC",
+              "id": "fuel-polisher-c4-o3"
+            }
+          ]
+        },
+        {
+          "id": "fuel-polisher-c5",
+          "name": "Sensors",
+          "hint": "F/C/N",
+          "options": [
+            {
+              "label": "Flow",
+              "code": "F",
+              "description": "Flow",
+              "id": "fuel-polisher-c5-o1"
+            },
+            {
+              "label": "Filters Clogged",
+              "code": "C",
+              "description": "Filters Clogged",
+              "id": "fuel-polisher-c5-o2"
+            },
+            {
+              "label": "No",
+              "code": "N",
+              "description": "No",
+              "id": "fuel-polisher-c5-o3"
+            }
+          ]
+        },
+        {
+          "id": "fuel-polisher-c6",
+          "name": "Leakage detection",
+          "hint": "T/N",
+          "options": [
+            {
+              "label": "Drip Tray",
+              "code": "T",
+              "description": "Drip Tray",
+              "id": "fuel-polisher-c6-o1"
+            },
+            {
+              "label": "No",
+              "code": "N",
+              "description": "No",
+              "id": "fuel-polisher-c6-o2"
+            }
+          ]
+        },
+        {
+          "id": "fuel-polisher-c7",
+          "name": "Valves",
+          "hint": "D/A/N",
+          "options": [
+            {
+              "label": "DC",
+              "code": "D",
+              "description": "DC",
+              "id": "fuel-polisher-c7-o1"
+            },
+            {
+              "label": "AC",
+              "code": "A",
+              "description": "AC",
+              "id": "fuel-polisher-c7-o2"
+            },
+            {
+              "label": "No",
+              "code": "N",
+              "description": "No",
+              "id": "fuel-polisher-c7-o3"
+            }
+          ]
+        },
+        {
+          "id": "fuel-polisher-c8",
+          "name": "Fuel Polisher specs",
+          "hint": "[PN]",
+          "options": [
+            {
+              "label": "[Part Number]",
+              "code": "PN",
+              "description": "[Part Number]",
+              "id": "fuel-polisher-c8-o1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cooling-louvres-ventilation",
+      "name": "Cooling - Louvres ventilation",
+      "description": "Koeling, ventilatieroosters: materiaal, afmetingen, locatie, onderdeelnummer, aantal en dak-/wandaansluiting.",
+      "rules": [],
+      "columns": [
+        {
+          "id": "cooling-louvres-ventilation-c1",
+          "name": "Material",
+          "hint": "GS/CS",
+          "options": [
+            {
+              "label": "Galvanized Steel",
+              "code": "GS",
+              "description": "Galvanized Steel",
+              "id": "cooling-louvres-ventilation-c1-o1"
+            },
+            {
+              "label": "Coated Steel",
+              "code": "CS",
+              "description": "Coated Steel",
+              "id": "cooling-louvres-ventilation-c1-o2"
+            }
+          ]
+        },
+        {
+          "id": "cooling-louvres-ventilation-c2",
+          "name": "Dimensions",
+          "hint": "[HxWxL]",
+          "options": [
+            {
+              "label": "HeightxWidthxLength",
+              "code": "HWL",
+              "description": "HeightxWidthxLength",
+              "id": "cooling-louvres-ventilation-c2-o1"
+            }
+          ]
+        },
+        {
+          "id": "cooling-louvres-ventilation-c3",
+          "name": "Location",
+          "hint": "W/R",
+          "options": [
+            {
+              "label": "Wall",
+              "code": "W",
+              "description": "Wall",
+              "id": "cooling-louvres-ventilation-c3-o1"
+            },
+            {
+              "label": "Roof",
+              "code": "R",
+              "description": "Roof",
+              "id": "cooling-louvres-ventilation-c3-o2"
+            }
+          ]
+        },
+        {
+          "id": "cooling-louvres-ventilation-c4",
+          "name": "Part number",
+          "hint": "[PN]",
+          "options": [
+            {
+              "label": "BV-70",
+              "code": "",
+              "description": "BV-70 — geen vette code in het bronblad; vul bij het samenstellen een code in.",
+              "id": "cooling-louvres-ventilation-c4-o1"
+            },
+            {
+              "label": "DK-3",
+              "code": "",
+              "description": "DK-3 — geen vette code in het bronblad; vul bij het samenstellen een code in.",
+              "id": "cooling-louvres-ventilation-c4-o2"
+            }
+          ]
+        },
+        {
+          "id": "cooling-louvres-ventilation-c5",
+          "name": "Quantity",
+          "hint": "[XX]",
+          "options": [
+            {
+              "label": "00 to 99",
+              "code": "",
+              "description": "00 to 99 — geen vette code in het bronblad; vul bij het samenstellen een code in.",
+              "id": "cooling-louvres-ventilation-c5-o1"
+            }
+          ]
+        },
+        {
+          "id": "cooling-louvres-ventilation-c6",
+          "name": "Roof connection",
+          "hint": "Y/N",
+          "options": [
+            {
+              "label": "Yes",
+              "code": "Y",
+              "description": "Yes",
+              "id": "cooling-louvres-ventilation-c6-o1"
+            },
+            {
+              "label": "No",
+              "code": "N",
+              "description": "No",
+              "id": "cooling-louvres-ventilation-c6-o2"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cooling-louvres-shut-off",
+      "name": "Cooling - Louvres shut-off",
+      "description": "Koeling, afsluitroosters: materiaal, afmetingen, onderdeelnummer, actuator en aantallen.",
+      "rules": [],
+      "columns": [
+        {
+          "id": "cooling-louvres-shut-off-c1",
+          "name": "Material",
+          "hint": "GS",
+          "options": [
+            {
+              "label": "Galvanized Steel",
+              "code": "GS",
+              "description": "Galvanized Steel",
+              "id": "cooling-louvres-shut-off-c1-o1"
+            }
+          ]
+        },
+        {
+          "id": "cooling-louvres-shut-off-c2",
+          "name": "Dimensions",
+          "hint": "[HxWxL]",
+          "options": [
+            {
+              "label": "HeightxWidthxLength",
+              "code": "HWL",
+              "description": "HeightxWidthxLength",
+              "id": "cooling-louvres-shut-off-c2-o1"
+            }
+          ]
+        },
+        {
+          "id": "cooling-louvres-shut-off-c3",
+          "name": "Part number",
+          "hint": "[PN]",
+          "options": [
+            {
+              "label": "[Part Number]",
+              "code": "PN",
+              "description": "[Part Number]",
+              "id": "cooling-louvres-shut-off-c3-o1"
+            },
+            {
+              "label": "JKK-2",
+              "code": "",
+              "description": "JKK-2 — geen vette code in het bronblad; vul bij het samenstellen een code in.",
+              "id": "cooling-louvres-shut-off-c3-o2"
+            }
+          ]
+        },
+        {
+          "id": "cooling-louvres-shut-off-c4",
+          "name": "Actuator",
+          "hint": "NF/SF/EF/FR",
+          "options": [
+            {
+              "label": "NFA-S2",
+              "code": "NF",
+              "description": "NFA-S2",
+              "id": "cooling-louvres-shut-off-c4-o1"
+            },
+            {
+              "label": "SFA-S2",
+              "code": "SF",
+              "description": "SFA-S2",
+              "id": "cooling-louvres-shut-off-c4-o2"
+            },
+            {
+              "label": "EFA-S2",
+              "code": "EF",
+              "description": "EFA-S2",
+              "id": "cooling-louvres-shut-off-c4-o3"
+            },
+            {
+              "label": "Fire Resistant",
+              "code": "FR",
+              "description": "Fire Resistant",
+              "id": "cooling-louvres-shut-off-c4-o4"
+            }
+          ]
+        },
+        {
+          "id": "cooling-louvres-shut-off-c5",
+          "name": "Quantity [per piece]",
+          "hint": "[XX]",
+          "options": [
+            {
+              "label": "00 to 99",
+              "code": "",
+              "description": "00 to 99 — geen vette code in het bronblad; vul bij het samenstellen een code in.",
+              "id": "cooling-louvres-shut-off-c5-o1"
+            }
+          ]
+        },
+        {
+          "id": "cooling-louvres-shut-off-c6",
+          "name": "Quantity",
+          "hint": "[XX]",
+          "options": [
+            {
+              "label": "00 to 99",
+              "code": "",
+              "description": "00 to 99 — geen vette code in het bronblad; vul bij het samenstellen een code in.",
+              "id": "cooling-louvres-shut-off-c6-o1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cooling-dampers",
+      "name": "Cooling - Dampers",
+      "description": "Koeling, kleppen: materiaal, afmetingen, locatie, type en aantal.",
+      "rules": [],
+      "columns": [
+        {
+          "id": "cooling-dampers-c1",
+          "name": "Material",
+          "hint": "AL/GS",
+          "options": [
+            {
+              "label": "Aluminium",
+              "code": "AL",
+              "description": "Aluminium",
+              "id": "cooling-dampers-c1-o1"
+            },
+            {
+              "label": "Galvanized Steel",
+              "code": "GS",
+              "description": "Galvanized Steel",
+              "id": "cooling-dampers-c1-o2"
+            }
+          ]
+        },
+        {
+          "id": "cooling-dampers-c2",
+          "name": "Dimensions",
+          "hint": "[HxWxL]",
+          "options": [
+            {
+              "label": "HeightxWidthxLength",
+              "code": "HWL",
+              "description": "HeightxWidthxLength",
+              "id": "cooling-dampers-c2-o1"
+            }
+          ]
+        },
+        {
+          "id": "cooling-dampers-c3",
+          "name": "Location",
+          "hint": "I/O",
+          "options": [
+            {
+              "label": "Inside",
+              "code": "I",
+              "description": "Inside",
+              "id": "cooling-dampers-c3-o1"
+            },
+            {
+              "label": "Outside",
+              "code": "O",
+              "description": "Outside",
+              "id": "cooling-dampers-c3-o2"
+            }
+          ]
+        },
+        {
+          "id": "cooling-dampers-c4",
+          "name": "Type",
+          "hint": "[PN]",
+          "options": [
+            {
+              "label": "[Part Number]",
+              "code": "PN",
+              "description": "[Part Number]",
+              "id": "cooling-dampers-c4-o1"
+            }
+          ]
+        },
+        {
+          "id": "cooling-dampers-c5",
+          "name": "Quantity",
+          "hint": "[XX]",
+          "options": [
+            {
+              "label": "00 to 99",
+              "code": "",
+              "description": "00 to 99 — geen vette code in het bronblad; vul bij het samenstellen een code in.",
+              "id": "cooling-dampers-c5-o1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cooling-roof-cooler",
+      "name": "Cooling - Roof Cooler",
+      "description": "Dakkoeler: glycolpercentage, materiaal, frame, leidingen, type, trillingsdempers, vermogen, bekabeling, lekdetectie, pomp op de genset, ruimtelijke ventilatie, warmtewisselaar en sensor.",
+      "rules": [],
+      "columns": [
+        {
+          "id": "cooling-roof-cooler-c1",
+          "name": "Fluid (Glicol %)",
+          "hint": "[XX]",
+          "options": [
+            {
+              "label": "30 to 60",
+              "code": "",
+              "description": "30 to 60 — geen vette code in het bronblad; vul bij het samenstellen een code in.",
+              "id": "cooling-roof-cooler-c1-o1"
+            }
+          ]
+        },
+        {
+          "id": "cooling-roof-cooler-c2",
+          "name": "Material",
+          "hint": "GS/CS",
+          "options": [
+            {
+              "label": "Galvanized Steel",
+              "code": "GS",
+              "description": "Galvanized Steel",
+              "id": "cooling-roof-cooler-c2-o1"
+            },
+            {
+              "label": "Coated Steel",
+              "code": "CS",
+              "description": "Coated Steel",
+              "id": "cooling-roof-cooler-c2-o2"
+            }
+          ]
+        },
+        {
+          "id": "cooling-roof-cooler-c3",
+          "name": "Frame",
+          "hint": "Y/N",
+          "options": [
+            {
+              "label": "Yes",
+              "code": "Y",
+              "description": "Yes",
+              "id": "cooling-roof-cooler-c3-o1"
+            },
+            {
+              "label": "No",
+              "code": "N",
+              "description": "No",
+              "id": "cooling-roof-cooler-c3-o2"
+            }
+          ]
+        },
+        {
+          "id": "cooling-roof-cooler-c4",
+          "name": "Piping",
+          "hint": "S/SS",
+          "options": [
+            {
+              "label": "Steel",
+              "code": "",
+              "description": "Steel — geen vette code in het bronblad; vul bij het samenstellen een code in.",
+              "id": "cooling-roof-cooler-c4-o1"
+            },
+            {
+              "label": "Stainless Steel",
+              "code": "",
+              "description": "Stainless Steel — geen vette code in het bronblad; vul bij het samenstellen een code in.",
+              "id": "cooling-roof-cooler-c4-o2"
+            }
+          ]
+        },
+        {
+          "id": "cooling-roof-cooler-c5",
+          "name": "Type",
+          "hint": "V/F",
+          "options": [
+            {
+              "label": "V-shaped",
+              "code": "V",
+              "description": "V-shaped",
+              "id": "cooling-roof-cooler-c5-o1"
+            },
+            {
+              "label": "Flat",
+              "code": "F",
+              "description": "Flat",
+              "id": "cooling-roof-cooler-c5-o2"
+            }
+          ]
+        },
+        {
+          "id": "cooling-roof-cooler-c6",
+          "name": "Vibration Mount",
+          "hint": "Y/N",
+          "options": [
+            {
+              "label": "Yes",
+              "code": "Y",
+              "description": "Yes",
+              "id": "cooling-roof-cooler-c6-o1"
+            },
+            {
+              "label": "No",
+              "code": "N",
+              "description": "No",
+              "id": "cooling-roof-cooler-c6-o2"
+            }
+          ]
+        },
+        {
+          "id": "cooling-roof-cooler-c7",
+          "name": "Piping Material",
+          "hint": "S/SS",
+          "options": [
+            {
+              "label": "Steel",
+              "code": "S",
+              "description": "Steel",
+              "id": "cooling-roof-cooler-c7-o1"
+            },
+            {
+              "label": "Stainless Steel",
+              "code": "SS",
+              "description": "Stainless Steel",
+              "id": "cooling-roof-cooler-c7-o2"
+            }
+          ]
+        },
+        {
+          "id": "cooling-roof-cooler-c8",
+          "name": "Power",
+          "hint": "[x]kW",
+          "options": [
+            {
+              "label": "[x]kW",
+              "code": "[x]kW",
+              "description": "[x]kW",
+              "id": "cooling-roof-cooler-c8-o1"
+            }
+          ]
+        },
+        {
+          "id": "cooling-roof-cooler-c9",
+          "name": "Wiring (Box)",
+          "hint": "S/T",
+          "options": [
+            {
+              "label": "Incl. Motor Prot. from Supplier",
+              "code": "S",
+              "description": "Incl. Motor Prot. from Supplier",
+              "id": "cooling-roof-cooler-c9-o1"
+            },
+            {
+              "label": "Terminals (we protect)",
+              "code": "T",
+              "description": "Terminals (we protect)",
+              "id": "cooling-roof-cooler-c9-o2"
+            }
+          ]
+        },
+        {
+          "id": "cooling-roof-cooler-c10",
+          "name": "Leakage detection",
+          "hint": "Y/N",
+          "options": [
+            {
+              "label": "Yes",
+              "code": "Y",
+              "description": "Yes",
+              "id": "cooling-roof-cooler-c10-o1"
+            },
+            {
+              "label": "No",
+              "code": "N",
+              "description": "No",
+              "id": "cooling-roof-cooler-c10-o2"
+            }
+          ]
+        },
+        {
+          "id": "cooling-roof-cooler-c11",
+          "name": "Pump on Genset",
+          "hint": "Y/N",
+          "options": [
+            {
+              "label": "Yes",
+              "code": "Y",
+              "description": "Yes",
+              "id": "cooling-roof-cooler-c11-o1"
+            },
+            {
+              "label": "No",
+              "code": "N",
+              "description": "No",
+              "id": "cooling-roof-cooler-c11-o2"
+            }
+          ]
+        },
+        {
+          "id": "cooling-roof-cooler-c12",
+          "name": "Our Room Vent?",
+          "hint": "Y/N",
+          "options": [
+            {
+              "label": "Yes",
+              "code": "Y",
+              "description": "Yes",
+              "id": "cooling-roof-cooler-c12-o1"
+            },
+            {
+              "label": "No",
+              "code": "N",
+              "description": "No",
+              "id": "cooling-roof-cooler-c12-o2"
+            }
+          ]
+        },
+        {
+          "id": "cooling-roof-cooler-c13",
+          "name": "Heat Exchange types",
+          "hint": "N/S/C",
+          "options": [
+            {
+              "label": "No",
+              "code": "N",
+              "description": "No",
+              "id": "cooling-roof-cooler-c13-o1"
+            },
+            {
+              "label": "Separate (HT/LT)",
+              "code": "S",
+              "description": "Separate (HT/LT)",
+              "id": "cooling-roof-cooler-c13-o2"
+            },
+            {
+              "label": "Combined (2 pipes)",
+              "code": "C",
+              "description": "Combined (2 pipes)",
+              "id": "cooling-roof-cooler-c13-o3"
+            }
+          ]
+        },
+        {
+          "id": "cooling-roof-cooler-c14",
+          "name": "Sensor",
+          "hint": "N/1/2",
+          "options": [
+            {
+              "label": "No",
+              "code": "N",
+              "description": "No",
+              "id": "cooling-roof-cooler-c14-o1"
+            },
+            {
+              "label": "1 Sensor (Low)",
+              "code": "1",
+              "description": "1 Sensor (Low)",
+              "id": "cooling-roof-cooler-c14-o2"
+            },
+            {
+              "label": "2 Sensors (L/LL)",
+              "code": "2",
+              "description": "2 Sensors (L/LL)",
+              "id": "cooling-roof-cooler-c14-o3"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "exhaust",
+      "name": "Exhaust",
+      "description": "Uitlaat: leidingmaat en -materiaal, klep, Stage V, temperatuurmeting, regenkap, isolatie, ondersteuning en emissiebehandeling.",
+      "rules": [],
+      "columns": [
+        {
+          "id": "exhaust-c1",
+          "name": "Piping size",
+          "hint": "[⌀xL]",
+          "options": [
+            {
+              "label": "⌀diameterxLength",
+              "code": "⌀xL",
+              "description": "⌀diameterxLength",
+              "id": "exhaust-c1-o1"
+            }
+          ]
+        },
+        {
+          "id": "exhaust-c2",
+          "name": "Piping material",
+          "hint": "S/SS",
+          "options": [
+            {
+              "label": "Steel",
+              "code": "S",
+              "description": "Steel",
+              "id": "exhaust-c2-o1"
+            },
+            {
+              "label": "Stainless Steel",
+              "code": "SS",
+              "description": "Stainless Steel",
+              "id": "exhaust-c2-o2"
+            }
+          ]
+        },
+        {
+          "id": "exhaust-c3",
+          "name": "Damper",
+          "hint": "Y/N",
+          "options": [
+            {
+              "label": "Yes",
+              "code": "Y",
+              "description": "Yes",
+              "id": "exhaust-c3-o1"
+            },
+            {
+              "label": "No",
+              "code": "N",
+              "description": "No",
+              "id": "exhaust-c3-o2"
+            }
+          ]
+        },
+        {
+          "id": "exhaust-c4",
+          "name": "Stage V (y/n)",
+          "hint": "Y/N",
+          "options": [
+            {
+              "label": "Yes",
+              "code": "Y",
+              "description": "Yes",
+              "id": "exhaust-c4-o1"
+            },
+            {
+              "label": "No",
+              "code": "N",
+              "description": "No",
+              "id": "exhaust-c4-o2"
+            }
+          ]
+        },
+        {
+          "id": "exhaust-c5",
+          "name": "Temperature meas.",
+          "hint": "Y/N",
+          "options": [
+            {
+              "label": "Yes",
+              "code": "Y",
+              "description": "Yes",
+              "id": "exhaust-c5-o1"
+            },
+            {
+              "label": "No",
+              "code": "N",
+              "description": "No",
+              "id": "exhaust-c5-o2"
+            }
+          ]
+        },
+        {
+          "id": "exhaust-c6",
+          "name": "Rain cover Location",
+          "hint": "W/R",
+          "options": [
+            {
+              "label": "Wall",
+              "code": "W",
+              "description": "Wall",
+              "id": "exhaust-c6-o1"
+            },
+            {
+              "label": "Roof",
+              "code": "R",
+              "description": "Roof",
+              "id": "exhaust-c6-o2"
+            }
+          ]
+        },
+        {
+          "id": "exhaust-c7",
+          "name": "Insulation",
+          "hint": "A/M",
+          "options": [
+            {
+              "label": "Aluminium",
+              "code": "Al",
+              "description": "Aluminium",
+              "id": "exhaust-c7-o1"
+            },
+            {
+              "label": "Matresses",
+              "code": "M",
+              "description": "Matresses",
+              "id": "exhaust-c7-o2"
+            }
+          ]
+        },
+        {
+          "id": "exhaust-c8",
+          "name": "Suporting system",
+          "hint": "R/F",
+          "options": [
+            {
+              "label": "Roof",
+              "code": "R",
+              "description": "Roof",
+              "id": "exhaust-c8-o1"
+            },
+            {
+              "label": "Floor",
+              "code": "F",
+              "description": "Floor",
+              "id": "exhaust-c8-o2"
+            }
+          ]
+        },
+        {
+          "id": "exhaust-c9",
+          "name": "Emmission treatment",
+          "hint": "Y/N",
+          "options": [
+            {
+              "label": "Yes",
+              "code": "Y",
+              "description": "Yes",
+              "id": "exhaust-c9-o1"
+            },
+            {
+              "label": "No",
+              "code": "N",
+              "description": "No",
+              "id": "exhaust-c9-o2"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "genset",
+      "name": "Genset",
+      "description": "Genset: regelaar, communicatie, vermogen, meetspanning, aarding, omkasting, dagtank, pomp, HV/LV-kast, koeling en lekdetectie.",
+      "rules": [],
+      "columns": [
+        {
+          "id": "genset-c1",
+          "name": "Controller",
+          "hint": "3/4/8/M/R",
+          "options": [
+            {
+              "label": "APM303",
+              "code": "3",
+              "description": "APM303",
+              "id": "genset-c1-o1"
+            },
+            {
+              "label": "APM403",
+              "code": "4",
+              "description": "APM403",
+              "id": "genset-c1-o2"
+            },
+            {
+              "label": "APM802 (804)",
+              "code": "8",
+              "description": "APM802 (804)",
+              "id": "genset-c1-o3"
+            },
+            {
+              "label": "M80-D",
+              "code": "M",
+              "description": "M80-D",
+              "id": "genset-c1-o4"
+            },
+            {
+              "label": "To be Replaced",
+              "code": "R",
+              "description": "To be Replaced",
+              "id": "genset-c1-o5"
+            }
+          ]
+        },
+        {
+          "id": "genset-c2",
+          "name": "Communication",
+          "hint": "E/R/C/N/A",
+          "options": [
+            {
+              "label": "Ethernet",
+              "code": "E",
+              "description": "Ethernet",
+              "id": "genset-c2-o1"
+            },
+            {
+              "label": "RS485",
+              "code": "R",
+              "description": "RS485",
+              "id": "genset-c2-o2"
+            },
+            {
+              "label": "CAN to ECU",
+              "code": "C",
+              "description": "CAN to ECU",
+              "id": "genset-c2-o3"
+            },
+            {
+              "label": "CAN to Controller",
+              "code": "N",
+              "description": "CAN to Controller",
+              "id": "genset-c2-o4"
+            },
+            {
+              "label": "AVR/SG Analog",
+              "code": "A",
+              "description": "AVR/SG Analog",
+              "id": "genset-c2-o5"
+            }
+          ]
+        },
+        {
+          "id": "genset-c3",
+          "name": "Power",
+          "hint": "[x]-[x]",
+          "options": [
+            {
+              "label": "[x]kW",
+              "code": "",
+              "description": "[x]kW — geen vette code in het bronblad; vul bij het samenstellen een code in.",
+              "id": "genset-c3-o1"
+            }
+          ]
+        },
+        {
+          "id": "genset-c4",
+          "name": "Measurement Voltage",
+          "hint": "4/1",
+          "options": [
+            {
+              "label": "400VAC",
+              "code": "4",
+              "description": "400VAC",
+              "id": "genset-c4-o1"
+            },
+            {
+              "label": "110VAC",
+              "code": "1",
+              "description": "110VAC",
+              "id": "genset-c4-o2"
+            }
+          ]
+        },
+        {
+          "id": "genset-c5",
+          "name": "Earthing System",
+          "hint": "C/S",
+          "options": [
+            {
+              "label": "TNC",
+              "code": "C",
+              "description": "TNC",
+              "id": "genset-c5-o1"
+            },
+            {
+              "label": "TNS",
+              "code": "S",
+              "description": "TNS",
+              "id": "genset-c5-o2"
+            }
+          ]
+        },
+        {
+          "id": "genset-c6",
+          "name": "Canopy (Y/N)",
+          "hint": "Y/N",
+          "options": [
+            {
+              "label": "Yes",
+              "code": "Y",
+              "description": "Yes",
+              "id": "genset-c6-o1"
+            },
+            {
+              "label": "No",
+              "code": "N",
+              "description": "No",
+              "id": "genset-c6-o2"
+            }
+          ]
+        },
+        {
+          "id": "genset-c7",
+          "name": "Day Tank",
+          "hint": "Y/N",
+          "options": [
+            {
+              "label": "Yes",
+              "code": "Y",
+              "description": "Yes",
+              "id": "genset-c7-o1"
+            },
+            {
+              "label": "No",
+              "code": "N",
+              "description": "No",
+              "id": "genset-c7-o2"
+            }
+          ]
+        },
+        {
+          "id": "genset-c8",
+          "name": "Pump",
+          "hint": "Y/N",
+          "options": [
+            {
+              "label": "Yes",
+              "code": "Y",
+              "description": "Yes",
+              "id": "genset-c8-o1"
+            },
+            {
+              "label": "No",
+              "code": "N",
+              "description": "No",
+              "id": "genset-c8-o2"
+            }
+          ]
+        },
+        {
+          "id": "genset-c9",
+          "name": "Elec. box for HV/LV",
+          "hint": "H/L",
+          "options": [
+            {
+              "label": "HV",
+              "code": "H",
+              "description": "HV",
+              "id": "genset-c9-o1"
+            },
+            {
+              "label": "LV",
+              "code": "L",
+              "description": "LV",
+              "id": "genset-c9-o2"
+            }
+          ]
+        },
+        {
+          "id": "genset-c10",
+          "name": "Cooling system type",
+          "hint": "A/W/C",
+          "options": [
+            {
+              "label": "Air Cooled",
+              "code": "A",
+              "description": "Air Cooled",
+              "id": "genset-c10-o1"
+            },
+            {
+              "label": "Water Cooled",
+              "code": "W",
+              "description": "Water Cooled",
+              "id": "genset-c10-o2"
+            },
+            {
+              "label": "Water Cooled (Client's Installation)",
+              "code": "C",
+              "description": "Water Cooled (Client's Installation)",
+              "id": "genset-c10-o3"
+            }
+          ]
+        },
+        {
+          "id": "genset-c11",
+          "name": "Leakage detection",
+          "hint": "T/N",
+          "options": [
+            {
+              "label": "Drip Tray",
+              "code": "T",
+              "description": "Drip Tray",
+              "id": "genset-c11-o1"
+            },
+            {
+              "label": "No",
+              "code": "N",
+              "description": "No",
+              "id": "genset-c11-o2"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "energy-transfer",
+      "name": "Energy Transfer",
+      "description": "Energieoverdracht: regelaar, uitbreidingen, displays, omschakeling, vermogensschakelaar, metingen, hulpspanning en railkoppeling. Metingen (schematisch) staan nog open in het bronblad.",
+      "rules": [],
+      "columns": [
+        {
+          "id": "energy-transfer-c1",
+          "name": "Controller",
+          "hint": "05/10/11/02/21/51",
+          "options": [
+            {
+              "label": "IG500G2",
+              "code": "5",
+              "description": "IG500G2",
+              "id": "energy-transfer-c1-o1"
+            },
+            {
+              "label": "IG1000",
+              "code": "10",
+              "description": "IG1000",
+              "id": "energy-transfer-c1-o2"
+            },
+            {
+              "label": "IM1010",
+              "code": "11",
+              "description": "IM1010",
+              "id": "energy-transfer-c1-o3"
+            },
+            {
+              "label": "IG200G2",
+              "code": "2",
+              "description": "IG200G2",
+              "id": "energy-transfer-c1-o4"
+            },
+            {
+              "label": "IM210",
+              "code": "21",
+              "description": "IM210",
+              "id": "energy-transfer-c1-o5"
+            },
+            {
+              "label": "IM510",
+              "code": "51",
+              "description": "IM510",
+              "id": "energy-transfer-c1-o6"
+            }
+          ]
+        },
+        {
+          "id": "energy-transfer-c2",
+          "name": "Expansions",
+          "hint": "D88/D16/AI8/AO8/BIO/CM3",
+          "options": [
+            {
+              "label": "IO8/8",
+              "code": "8/8",
+              "description": "IO8/8",
+              "id": "energy-transfer-c2-o1"
+            },
+            {
+              "label": "IO16/0",
+              "code": "16",
+              "description": "IO16/0",
+              "id": "energy-transfer-c2-o2"
+            },
+            {
+              "label": "AIN8",
+              "code": "AI8",
+              "description": "AIN8",
+              "id": "energy-transfer-c2-o3"
+            },
+            {
+              "label": "AOUT8",
+              "code": "AO8",
+              "description": "AOUT8",
+              "id": "energy-transfer-c2-o4"
+            },
+            {
+              "label": "EM-BIO8-EFCP",
+              "code": "BIO",
+              "description": "EM-BIO8-EFCP",
+              "id": "energy-transfer-c2-o5"
+            },
+            {
+              "label": "CM3-ETHERNET",
+              "code": "CM3",
+              "description": "CM3-ETHERNET",
+              "id": "energy-transfer-c2-o6"
+            }
+          ]
+        },
+        {
+          "id": "energy-transfer-c3",
+          "name": "Displays",
+          "hint": "10/15/52",
+          "options": [
+            {
+              "label": "IV1050",
+              "code": "10",
+              "description": "IV1050",
+              "id": "energy-transfer-c3-o1"
+            },
+            {
+              "label": "IV1550",
+              "code": "15",
+              "description": "IV1550",
+              "id": "energy-transfer-c3-o2"
+            },
+            {
+              "label": "IV5.2",
+              "code": "5.2",
+              "description": "IV5.2",
+              "id": "energy-transfer-c3-o3"
+            }
+          ]
+        },
+        {
+          "id": "energy-transfer-c4",
+          "name": "Transition type",
+          "hint": "OT/SP/LP",
+          "options": [
+            {
+              "label": "Open Transition (Through the dark)",
+              "code": "OT",
+              "description": "Open Transition (Through the dark)",
+              "id": "energy-transfer-c4-o1"
+            },
+            {
+              "label": "Short-time Parallel",
+              "code": "SP",
+              "description": "Short-time Parallel",
+              "id": "energy-transfer-c4-o2"
+            },
+            {
+              "label": "Long-time Parallel",
+              "code": "L P",
+              "description": "Long-time Parallel",
+              "id": "energy-transfer-c4-o3"
+            }
+          ]
+        },
+        {
+          "id": "energy-transfer-c5",
+          "name": "CB signals",
+          "hint": "[Manufacturer]",
+          "options": [
+            {
+              "label": "[Manufacturer]",
+              "code": "[Manufacturer]",
+              "description": "[Manufacturer]",
+              "id": "energy-transfer-c5-o1"
+            }
+          ]
+        },
+        {
+          "id": "energy-transfer-c6",
+          "name": "CB to control",
+          "hint": "[XX]",
+          "options": [
+            {
+              "label": "00 to 99",
+              "code": "",
+              "description": "00 to 99 — geen vette code in het bronblad; vul bij het samenstellen een code in.",
+              "id": "energy-transfer-c6-o1"
+            }
+          ]
+        },
+        {
+          "id": "energy-transfer-c7",
+          "name": "Auxiliary Supply",
+          "hint": "1/3",
+          "options": [
+            {
+              "label": "1-phase",
+              "code": "",
+              "description": "1-phase — geen vette code in het bronblad; vul bij het samenstellen een code in.",
+              "id": "energy-transfer-c7-o1"
+            },
+            {
+              "label": "3-phase",
+              "code": "",
+              "description": "3-phase — geen vette code in het bronblad; vul bij het samenstellen een code in.",
+              "id": "energy-transfer-c7-o2"
+            }
+          ]
+        },
+        {
+          "id": "energy-transfer-c8",
+          "name": "Busbar Tie Breaker (BTB)",
+          "hint": "Y/N",
+          "options": [
+            {
+              "label": "Yes",
+              "code": "Y",
+              "description": "Yes",
+              "id": "energy-transfer-c8-o1"
+            },
+            {
+              "label": "No",
+              "code": "N",
+              "description": "No",
+              "id": "energy-transfer-c8-o2"
+            }
+          ]
+        },
+        {
+          "id": "energy-transfer-c9",
+          "name": "Cable Trays on Installation",
+          "hint": "Y/N",
+          "options": [
+            {
+              "label": "Yes",
+              "code": "Y",
+              "description": "Yes",
+              "id": "energy-transfer-c9-o1"
+            },
+            {
+              "label": "No",
+              "code": "N",
+              "description": "No",
+              "id": "energy-transfer-c9-o2"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "control-panel",
+      "name": "Control Panel",
+      "description": "Besturingskast: afmetingen, montage, voeding, redundantie, netwerk, PLC en klantspecifieke eisen.",
+      "rules": [],
+      "columns": [
+        {
+          "id": "control-panel-c1",
+          "name": "Dimensions",
+          "hint": "[HxWxL]",
+          "options": [
+            {
+              "label": "HeightxWidthxLength",
+              "code": "HWL",
+              "description": "HeightxWidthxLength",
+              "id": "control-panel-c1-o1"
+            }
+          ]
+        },
+        {
+          "id": "control-panel-c2",
+          "name": "Mounting",
+          "hint": "F/W",
+          "options": [
+            {
+              "label": "Floor",
+              "code": "F",
+              "description": "Floor",
+              "id": "control-panel-c2-o1"
+            },
+            {
+              "label": "Wall",
+              "code": "W",
+              "description": "Wall",
+              "id": "control-panel-c2-o2"
+            }
+          ]
+        },
+        {
+          "id": "control-panel-c3",
+          "name": "Power Supply",
+          "hint": "[x]",
+          "options": [
+            {
+              "label": "[x]V",
+              "code": "[x]V",
+              "description": "[x]V",
+              "id": "control-panel-c3-o1"
+            }
+          ]
+        },
+        {
+          "id": "control-panel-c4",
+          "name": "Redundancy",
+          "hint": "Y/N",
+          "options": [
+            {
+              "label": "Yes",
+              "code": "Y",
+              "description": "Yes",
+              "id": "control-panel-c4-o1"
+            },
+            {
+              "label": "No",
+              "code": "N",
+              "description": "No",
+              "id": "control-panel-c4-o2"
+            }
+          ]
+        },
+        {
+          "id": "control-panel-c5",
+          "name": "Network",
+          "hint": "EN/EC",
+          "options": [
+            {
+              "label": "EtherNet",
+              "code": "EN",
+              "description": "EtherNet",
+              "id": "control-panel-c5-o1"
+            },
+            {
+              "label": "EtherCAT",
+              "code": "EC",
+              "description": "EtherCAT",
+              "id": "control-panel-c5-o2"
+            }
+          ]
+        },
+        {
+          "id": "control-panel-c6",
+          "name": "Redundancy (2)",
+          "hint": "Y/N",
+          "options": [
+            {
+              "label": "Yes",
+              "code": "Y",
+              "description": "Yes",
+              "id": "control-panel-c6-o1"
+            },
+            {
+              "label": "No",
+              "code": "N",
+              "description": "No",
+              "id": "control-panel-c6-o2"
+            }
+          ]
+        },
+        {
+          "id": "control-panel-c7",
+          "name": "PLC",
+          "hint": "N/D",
+          "options": [
+            {
+              "label": "No",
+              "code": "N",
+              "description": "No",
+              "id": "control-panel-c7-o1"
+            },
+            {
+              "label": "Deif",
+              "code": "D",
+              "description": "Deif",
+              "id": "control-panel-c7-o2"
+            }
+          ]
+        },
+        {
+          "id": "control-panel-c8",
+          "name": "Client specific demands",
+          "hint": "ST/WC/ES",
+          "options": [
+            {
+              "label": "Standard",
+              "code": "ST",
+              "description": "Standard",
+              "id": "control-panel-c8-o1"
+            },
+            {
+              "label": "Wire Colours",
+              "code": "WC",
+              "description": "Wire Colours",
+              "id": "control-panel-c8-o2"
+            },
+            {
+              "label": "Eplan Standard",
+              "code": "ES",
+              "description": "Eplan Standard",
+              "id": "control-panel-c8-o3"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "load-bank-en-mobile-generator",
+      "name": "Load Bank & Mobile Generator",
+      "description": "Loadbank en mobiele generator: beveiliging, aansluiting in en uit, Powerlock, montage en vermogen.",
+      "rules": [],
+      "columns": [
+        {
+          "id": "load-bank-en-mobile-generator-c1",
+          "name": "Protection type",
+          "hint": "CB/UC",
+          "options": [
+            {
+              "label": "Circuit Breaker",
+              "code": "CB",
+              "description": "Circuit Breaker",
+              "id": "load-bank-en-mobile-generator-c1-o1"
+            },
+            {
+              "label": "Undervoltage Coil",
+              "code": "UC",
+              "description": "Undervoltage Coil",
+              "id": "load-bank-en-mobile-generator-c1-o2"
+            }
+          ]
+        },
+        {
+          "id": "load-bank-en-mobile-generator-c2",
+          "name": "Connection type In",
+          "hint": "B/W/C",
+          "options": [
+            {
+              "label": "Busbar",
+              "code": "B",
+              "description": "Busbar",
+              "id": "load-bank-en-mobile-generator-c2-o1"
+            },
+            {
+              "label": "Wire",
+              "code": "W",
+              "description": "Wire",
+              "id": "load-bank-en-mobile-generator-c2-o2"
+            },
+            {
+              "label": "Cables",
+              "code": "C",
+              "description": "Cables",
+              "id": "load-bank-en-mobile-generator-c2-o3"
+            }
+          ]
+        },
+        {
+          "id": "load-bank-en-mobile-generator-c3",
+          "name": "Connection type Out",
+          "hint": "B/W/C",
+          "options": [
+            {
+              "label": "Busbar",
+              "code": "B",
+              "description": "Busbar",
+              "id": "load-bank-en-mobile-generator-c3-o1"
+            },
+            {
+              "label": "Wire",
+              "code": "W",
+              "description": "Wire",
+              "id": "load-bank-en-mobile-generator-c3-o2"
+            },
+            {
+              "label": "Cables",
+              "code": "C",
+              "description": "Cables",
+              "id": "load-bank-en-mobile-generator-c3-o3"
+            }
+          ]
+        },
+        {
+          "id": "load-bank-en-mobile-generator-c4",
+          "name": "PowerLock Connectors",
+          "hint": "I/O",
+          "options": [
+            {
+              "label": "In",
+              "code": "I",
+              "description": "In",
+              "id": "load-bank-en-mobile-generator-c4-o1"
+            },
+            {
+              "label": "Out",
+              "code": "O",
+              "description": "Out",
+              "id": "load-bank-en-mobile-generator-c4-o2"
+            }
+          ]
+        },
+        {
+          "id": "load-bank-en-mobile-generator-c5",
+          "name": "Mounting",
+          "hint": "W/G/S",
+          "options": [
+            {
+              "label": "Wall",
+              "code": "W",
+              "description": "Wall",
+              "id": "load-bank-en-mobile-generator-c5-o1"
+            },
+            {
+              "label": "Genset",
+              "code": "G",
+              "description": "Genset",
+              "id": "load-bank-en-mobile-generator-c5-o2"
+            },
+            {
+              "label": "Switchgear",
+              "code": "S",
+              "description": "Switchgear",
+              "id": "load-bank-en-mobile-generator-c5-o3"
+            }
+          ]
+        },
+        {
+          "id": "load-bank-en-mobile-generator-c6",
+          "name": "Power",
+          "hint": "[x]",
+          "options": [
+            {
+              "label": "[x]kW",
+              "code": "",
+              "description": "[x]kW — geen vette code in het bronblad; vul bij het samenstellen een code in.",
+              "id": "load-bank-en-mobile-generator-c6-o1"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
