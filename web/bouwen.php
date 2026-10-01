@@ -84,67 +84,171 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
     kothar_redirect('bouwen.php?' . http_build_query($query));
 }
 
-$started = isset($_GET['keuze']) || isset($_GET['invul']);
 $built = kothar_build_from_choices($category, $choices, $fills);
 $existing = $built['ok'] ? kothar_find_by_number($savedDoc['compositions'], $built['number']) : null;
+$explicitUpdate = isset($_GET['bijwerken']);
 
-kothar_page_open((string) $category['name']);
-echo '<p class="crumb"><a href="index.php">Start</a> · Samenstellen</p>';
-echo '<h1>' . kothar_h((string) $category['name']) . '</h1>';
-echo '<p class="lead">' . kothar_h((string) ($category['description'] ?? '')) . '</p>';
-
-echo '<form method="get" action="bouwen.php" class="builder">';
-echo '<input type="hidden" name="categorie" value="' . kothar_h($categoryId) . '">';
+$steps = [];
 foreach ($category['columns'] as $column) {
     if (!is_array($column)) {
         continue;
     }
     $columnId = (string) ($column['id'] ?? '');
-    $options = is_array($column['options'] ?? null) ? $column['options'] : [];
+    $optionRows = [];
+    $source = is_array($column['options'] ?? null) ? $column['options'] : [];
+    foreach ($source as $option) {
+        if (is_array($option)) {
+            $optionRows[] = $option;
+        }
+    }
     $picked = trim((string) ($choices[$columnId] ?? ''));
-    if ($picked === '' && count($options) === 1 && is_array($options[0])) {
-        $picked = (string) ($options[0]['id'] ?? '');
+    if ($picked === '' && count($optionRows) === 1) {
+        $picked = (string) ($optionRows[0]['id'] ?? '');
     }
-    echo '<fieldset><legend>' . kothar_h((string) ($column['name'] ?? '')) . '</legend>';
-    $hint = trim((string) ($column['hint'] ?? ''));
-    if ($hint !== '') {
-        echo '<p class="hint">Codes in het blad: ' . kothar_h($hint) . '</p>';
-    }
-    echo '<label class="sr" for="keuze-' . kothar_h($columnId) . '">Optie</label>';
-    echo '<select id="keuze-' . kothar_h($columnId) . '" name="keuze[' . kothar_h($columnId) . ']" onchange="this.form.submit()">';
-    echo '<option value="">Kies…</option>';
     $selected = null;
-    foreach ($options as $option) {
-        if (!is_array($option)) {
-            continue;
-        }
-        $oid = (string) ($option['id'] ?? '');
-        $isSel = $oid === $picked;
-        if ($isSel) {
+    foreach ($optionRows as $option) {
+        if ((string) ($option['id'] ?? '') === $picked) {
             $selected = $option;
+            break;
         }
-        $code = trim((string) ($option['code'] ?? ''));
-        $text = (string) ($option['label'] ?? '');
-        if ($code !== '') {
-            $text .= ' (' . $code . ')';
-        }
-        echo '<option value="' . kothar_h($oid) . '"' . ($isSel ? ' selected' : '') . '>' . kothar_h($text) . '</option>';
     }
-    echo '</select>';
+    $fill = (string) ($fills[$columnId] ?? '');
+    $segment = '';
+    $valid = false;
+    $needsFill = false;
     if (is_array($selected)) {
-        echo '<p class="option-desc">' . kothar_h((string) ($selected['description'] ?? '')) . '</p>';
-        if (trim((string) ($selected['code'] ?? '')) === '') {
-            $fill = (string) ($fills[$columnId] ?? '');
-            echo '<label for="invul-' . kothar_h($columnId) . '">Code voor deze kolom</label>';
-            echo '<input id="invul-' . kothar_h($columnId) . '" name="invul[' . kothar_h($columnId) . ']" value="' . kothar_h($fill) . '" maxlength="40" autocomplete="off">';
+        $optionCode = trim((string) ($selected['code'] ?? ''));
+        if ($optionCode === '') {
+            $needsFill = true;
+            $segment = trim($fill);
+            $valid = $segment !== '' && !str_contains($segment, '.');
+        } else {
+            $segment = $optionCode;
+            $valid = true;
         }
     }
-    echo '</fieldset>';
+    $cards = [];
+    foreach ($optionRows as $option) {
+        $code = trim((string) ($option['code'] ?? ''));
+        $label = (string) ($option['label'] ?? '');
+        $description = (string) ($option['description'] ?? '');
+        $cards[] = [
+            'id' => (string) ($option['id'] ?? ''),
+            'label' => $label,
+            'description' => $description,
+            'showDescription' => trim($description) !== '' && trim($description) !== trim($label),
+            'code' => $code,
+            'color' => kothar_segment_color($code),
+            'needsFill' => $code === '',
+            'selected' => (string) ($option['id'] ?? '') === $picked && $picked !== '',
+        ];
+    }
+    $steps[] = [
+        'id' => $columnId,
+        'name' => (string) ($column['name'] ?? 'Kolom'),
+        'hint' => trim((string) ($column['hint'] ?? '')),
+        'fill' => $fill,
+        'segment' => $segment,
+        'color' => $segment !== '' ? kothar_segment_color($segment) : '',
+        'valid' => $valid,
+        'needsFill' => $needsFill,
+        'current' => is_array($selected) ? (string) ($selected['label'] ?? '') : '',
+        'fillError' => $needsFill && str_contains($fill, '.'),
+        'cards' => $cards,
+    ];
 }
-echo '<p><button type="submit">Werk nummer bij</button></p>';
+
+kothar_page_open((string) $category['name']);
+echo '<p class="crumb"><a href="index.php">Start</a> · Samenstellen</p>';
+echo '<h1>' . kothar_h((string) $category['name']) . '</h1>';
+echo '<p class="lead">' . kothar_h((string) ($category['description'] ?? '')) . '</p>';
+echo '<p class="hint">Kies per kolom één kaart. Het nummer bovenaan volgt meteen. De eerste keer klapt die kolom dicht en gaat de volgende open.</p>';
+
+$doneCount = 0;
+foreach ($steps as $step) {
+    if ($step['valid']) {
+        $doneCount++;
+    }
+}
+$stepTotal = count($steps);
+echo '<div class="builder-shell">';
+echo '<div class="code-sticky">';
+echo '<p class="code-meta"><span>Samenstellingsnummer</span><span data-progress>' . $doneCount . ' van ' . $stepTotal . '</span></p>';
+echo '<p class="code-live number" data-code-live>';
+foreach ($steps as $index => $step) {
+    if ($index > 0) {
+        echo '<span class="code-dot">.</span>';
+    }
+    if ($step['segment'] === '') {
+        echo '<span class="code-seg is-empty">—</span>';
+        continue;
+    }
+    $style = $step['color'] !== '' ? ' style="--seg: ' . kothar_h($step['color']) . '"' : '';
+    echo '<span class="code-seg"' . $style . '>' . kothar_h($step['segment']) . '</span>';
+}
+echo '</p></div>';
+echo '<form method="get" action="bouwen.php" class="builder" data-builder autocomplete="off">';
+echo '<input type="hidden" name="categorie" value="' . kothar_h($categoryId) . '">';
+
+foreach ($steps as $index => $step) {
+    $open = $index === 0 ? ' open' : '';
+    echo '<details class="step' . ($step['valid'] ? ' is-done' : '') . '" data-step data-complete="' . ($step['valid'] ? '1' : '0') . '"' . $open . '>';
+    echo '<summary>';
+    echo '<span class="step-no">' . ($index + 1) . '</span>';
+    echo '<span class="step-title"><span class="step-name">' . kothar_h($step['name']) . '</span>';
+    $current = $step['current'] !== '' ? $step['current'] : 'Kies…';
+    if ($step['needsFill'] && $step['segment'] !== '') {
+        $current .= ' · ' . $step['segment'];
+    }
+    echo '<span class="step-current" data-current>' . kothar_h($current) . '</span></span>';
+    if ($step['color'] !== '') {
+        echo '<span class="step-pip" data-pip style="--seg: ' . kothar_h($step['color']) . '"></span>';
+    } else {
+        echo '<span class="step-pip" data-pip hidden></span>';
+    }
+    echo '</summary>';
+    echo '<div class="step-body">';
+    if ($step['hint'] !== '') {
+        echo '<p class="hint">Codes in het blad: ' . kothar_h($step['hint']) . '</p>';
+    }
+    echo '<div class="option-grid">';
+    foreach ($step['cards'] as $card) {
+        $selectedClass = $card['selected'] ? ' is-selected' : '';
+        echo '<label class="option-card' . $selectedClass . '">';
+        echo '<input type="radio" name="keuze[' . kothar_h($step['id']) . ']" value="' . kothar_h($card['id']) . '"';
+        echo ' data-code="' . kothar_h($card['code']) . '" data-label="' . kothar_h($card['label']) . '"';
+        echo ' data-needs-fill="' . ($card['needsFill'] ? '1' : '0') . '"';
+        if ($card['color'] !== '') {
+            echo ' data-color="' . kothar_h($card['color']) . '"';
+        }
+        if ($card['selected']) {
+            echo ' checked';
+        }
+        echo '>';
+        $topStyle = $card['color'] !== '' ? ' style="--seg: ' . kothar_h($card['color']) . '"' : '';
+        echo '<span class="option-top"' . $topStyle . '></span>';
+        echo '<span class="option-body"><span class="option-name">' . kothar_h($card['label']) . '</span>';
+        if ($card['showDescription']) {
+            echo '<span class="option-desc">' . kothar_h($card['description']) . '</span>';
+        }
+        echo '</span>';
+        echo '<span class="option-check" aria-hidden="true">✓</span>';
+        echo '</label>';
+    }
+    echo '</div>';
+    $fillId = 'invul-' . $step['id'];
+    $errorId = 'invul-fout-' . $step['id'];
+    echo '<div class="step-fill" data-step-fill' . ($step['needsFill'] ? '' : ' hidden') . '>';
+    echo '<label for="' . kothar_h($fillId) . '">Code voor deze kolom</label>';
+    echo '<input id="' . kothar_h($fillId) . '" name="invul[' . kothar_h($step['id']) . ']" data-fill value="' . kothar_h($step['fill']) . '" maxlength="40" autocomplete="off" spellcheck="false" enterkeyhint="next" aria-describedby="' . kothar_h($errorId) . '">';
+    echo '<p class="hint fill-error" id="' . kothar_h($errorId) . '" data-fill-error' . ($step['fillError'] ? '' : ' hidden') . '>De code mag geen punt bevatten.</p>';
+    echo '</div></div></details>';
+}
+echo '<p class="builder-update"><button type="submit" name="bijwerken" value="1" data-update>Werk nummer bij</button></p>';
 echo '</form>';
 
-if (!$built['ok'] && $started) {
+echo '<div id="samenstelling-uitkomst" data-result>';
+if (!$built['ok'] && $explicitUpdate) {
     echo '<p class="flash flash-warn">' . kothar_h($built['error']) . '</p>';
 }
 
@@ -183,5 +287,6 @@ if ($built['ok']) {
     }
     echo '</form></section>';
 }
+echo '</div></div>';
 
 kothar_page_close();
