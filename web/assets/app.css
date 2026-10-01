@@ -73,6 +73,28 @@ a:hover { color: var(--rust); }
 
 main { padding: 1.4rem 0 3rem; }
 h1 { font-size: 1.8rem; line-height: 1.2; margin: 0 0 0.4rem; }
+h1 button.category-edit-title {
+  display: inline;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.14em;
+  text-decoration-color: rgba(28, 36, 48, 0.35);
+}
+h1 button.category-edit-title:hover,
+h1 button.category-edit-title:focus-visible {
+  background: transparent;
+  color: var(--navy-2);
+  text-decoration-color: currentColor;
+}
 h2 { font-size: 1.2rem; margin: 0 0 0.6rem; }
 .lead { color: var(--muted); max-width: 44rem; }
 .hint { color: var(--muted); font-size: 0.92rem; }
@@ -520,6 +542,14 @@ body.is-reordering .column-panel summary::after { display: none; }
 .modal-card button.quiet:hover { background: #fff; color: var(--navy-2); }
 .modal-card button.danger { background: var(--rust); color: #fff; }
 .modal-card button.danger:hover { background: #7d3b1b; }
+.modal-card.category-meta {
+  display: grid;
+  gap: 0.55rem;
+  width: min(36rem, 100%);
+}
+.modal-card.category-meta h2 { margin: 0; }
+.modal-card.category-meta input,
+.modal-card.category-meta textarea { max-width: none; }
 
 @media (min-width: 720px) {
   .option-grid { grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); }

@@ -65,7 +65,7 @@ function kothar_posted_column_options(): array
         $options[] = [
             'id' => kothar_clean_text((string) ($ids[$i] ?? ''), 80),
             'label' => kothar_clean_text((string) ($labels[$i] ?? ''), 160),
-            'code' => kothar_clean_text((string) ($codes[$i] ?? ''), 40),
+            'code' => kothar_clean_code((string) ($codes[$i] ?? ''), 40),
             'description' => kothar_clean_text((string) ($descriptions[$i] ?? ''), 800),
         ];
     }
@@ -239,18 +239,26 @@ $category = $doc['categories'][$index];
 $reorder = (string) ($_GET['volgorde'] ?? '') === '1';
 kothar_page_open((string) ($category['name'] ?? 'Categorie'));
 echo '<p class="crumb"><a href="beheer.php">Beheer</a></p>';
-echo '<h1>' . kothar_h((string) ($category['name'] ?? '')) . '</h1>';
+$categoryName = trim((string) ($category['name'] ?? ''));
+echo '<h1><button type="button" class="category-edit-title" data-category-edit aria-haspopup="dialog" aria-controls="categorie-bewerken" aria-expanded="false">';
+echo kothar_h($categoryName === '' ? 'Categorie' : $categoryName);
+echo '</button></h1>';
+echo '<dialog class="modal" id="categorie-bewerken" data-category-modal aria-labelledby="categorie-bewerken-titel">';
+echo '<form method="post" class="modal-card category-meta" data-save-actie="meta">';
+echo '<h2 id="categorie-bewerken-titel">Categorie bewerken</h2>';
+echo kothar_csrf_field();
+echo '<input type="hidden" name="id" value="' . kothar_h($id) . '">';
+echo '<label for="naam">Naam</label><input id="naam" name="naam" required maxlength="120" value="' . kothar_h((string) ($category['name'] ?? '')) . '" autofocus>';
+echo '<label for="omschrijving">Omschrijving</label><textarea id="omschrijving" name="omschrijving" maxlength="800" rows="3">' . kothar_h((string) ($category['description'] ?? '')) . '</textarea>';
+echo '<div class="modal-actions">';
+echo '<button type="button" class="quiet" data-category-cancel>Annuleren</button>';
+echo '<button type="submit" name="actie" value="meta">Categorie opslaan</button>';
+echo '</div>';
+echo '</form></dialog>';
 echo '<p class="reorder-bar"><button type="button" data-volgorde-knop aria-pressed="' . ($reorder ? 'true' : 'false') . '">';
 echo $reorder ? 'Volgorde aanpassen gereed' : 'Volgorde aanpassen';
 echo '</button></p>';
 echo '<p class="hint" data-reorder-hint' . ($reorder ? '' : ' hidden') . '>Sleep de kolommen om de volgorde te wijzigen. Openen kan weer via “Volgorde aanpassen gereed”.</p>';
-echo '<form method="post" class="stack" data-save-actie="meta">';
-echo kothar_csrf_field();
-echo '<input type="hidden" name="id" value="' . kothar_h($id) . '">';
-echo '<label for="naam">Naam</label><input id="naam" name="naam" required maxlength="120" value="' . kothar_h((string) ($category['name'] ?? '')) . '">';
-echo '<label for="omschrijving">Omschrijving</label><textarea id="omschrijving" name="omschrijving" maxlength="800" rows="3">' . kothar_h((string) ($category['description'] ?? '')) . '</textarea>';
-echo '<button type="submit" name="actie" value="meta">Categorie opslaan</button>';
-echo '</form>';
 
 $columns = is_array($category['columns'] ?? null) ? $category['columns'] : [];
 echo '<div data-column-list data-category-id="' . kothar_h($id) . '" data-reordering="' . ($reorder ? '1' : '0') . '">';

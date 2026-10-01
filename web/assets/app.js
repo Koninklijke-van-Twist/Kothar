@@ -80,6 +80,13 @@
   if (!form) {
     return;
   }
+  Array.prototype.forEach.call(form.querySelectorAll("[data-fill]"), function (fill) {
+    var next = String(fill.value || "").replace(/\s+/g, "");
+    if (next !== fill.value) {
+      fill.value = next;
+      fill.defaultValue = next;
+    }
+  });
   var shell = form.closest(".builder-shell") || form;
   var live = shell.querySelector("[data-code-live]");
   var progress = shell.querySelector("[data-progress]");
@@ -127,7 +134,7 @@
     }
     var needsFill = radio.getAttribute("data-needs-fill") === "1";
     var label = radio.getAttribute("data-label") || "";
-    var code = needsFill ? (fill ? fill.value.trim() : "") : (radio.getAttribute("data-code") || "");
+    var code = needsFill ? (fill ? String(fill.value || "").replace(/\s+/g, "") : "") : (radio.getAttribute("data-code") || "");
     var color = "";
     if (code !== "") {
       color = needsFill ? kotharSegmentColor(code) : (radio.getAttribute("data-color") || kotharSegmentColor(code));
@@ -802,6 +809,9 @@
   }
 
   function postForm(form) {
+    if (window.kotharStripCodes) {
+      window.kotharStripCodes(form);
+    }
     if (window.kotharEnsureCsrf) {
       window.kotharEnsureCsrf(form);
     }
@@ -1097,4 +1107,107 @@
     dialog.showModal();
     cancel.focus();
   }
+})();
+
+(function () {
+  function isCodeField(field) {
+    return !!(field && field.matches && field.matches('input[name="code[]"], input[data-fill]'));
+  }
+
+  function stripField(field) {
+    var raw = String(field.value || "");
+    var next = raw.replace(/\s+/g, "");
+    if (next === raw) {
+      return;
+    }
+    var start = field.selectionStart;
+    var end = field.selectionEnd;
+    field.value = next;
+    if (document.activeElement !== field || start == null || !field.setSelectionRange) {
+      return;
+    }
+    var before = raw.slice(0, start).replace(/\s+/g, "").length;
+    var span = raw.slice(start, end == null ? start : end).replace(/\s+/g, "").length;
+    field.setSelectionRange(before, before + span);
+  }
+
+  function stripRoot(root) {
+    var scope = root && root.querySelectorAll ? root : document;
+    Array.prototype.forEach.call(scope.querySelectorAll('input[name="code[]"], input[data-fill]'), stripField);
+  }
+
+  window.kotharStripCodes = stripRoot;
+
+  document.addEventListener("input", function (event) {
+    if (isCodeField(event.target)) {
+      stripField(event.target);
+    }
+  }, true);
+
+  document.addEventListener("submit", function (event) {
+    var form = event.target;
+    if (form && form.querySelectorAll) {
+      stripRoot(form);
+    }
+  }, true);
+})();
+
+(function () {
+  var openButton = document.querySelector("[data-category-edit]");
+  var dialog = document.querySelector("[data-category-modal]");
+  if (!openButton || !dialog) {
+    return;
+  }
+  var form = dialog.querySelector("form");
+  var cancel = dialog.querySelector("[data-category-cancel]");
+  var nameInput = dialog.querySelector("#naam");
+
+  function resetForm() {
+    if (!form) {
+      return;
+    }
+    form.reset();
+    form.dispatchEvent(new Event("input", { bubbles: true }));
+  }
+
+  function openModal() {
+    if (typeof dialog.showModal === "function") {
+      if (!dialog.open) {
+        dialog.showModal();
+      }
+    } else {
+      dialog.setAttribute("open", "");
+    }
+    openButton.setAttribute("aria-expanded", "true");
+    if (nameInput) {
+      nameInput.focus();
+    }
+  }
+
+  function closeModal() {
+    resetForm();
+    if (dialog.open && typeof dialog.close === "function") {
+      dialog.close();
+    } else {
+      dialog.removeAttribute("open");
+    }
+    openButton.setAttribute("aria-expanded", "false");
+  }
+
+  openButton.addEventListener("click", openModal);
+  if (cancel) {
+    cancel.addEventListener("click", closeModal);
+  }
+  dialog.addEventListener("cancel", function () {
+    resetForm();
+    openButton.setAttribute("aria-expanded", "false");
+  });
+  dialog.addEventListener("close", function () {
+    openButton.setAttribute("aria-expanded", "false");
+  });
+  dialog.addEventListener("click", function (event) {
+    if (event.target === dialog) {
+      closeModal();
+    }
+  });
 })();

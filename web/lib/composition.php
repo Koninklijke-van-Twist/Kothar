@@ -7,6 +7,20 @@ declare(strict_types=1);
  * Dit bestand heeft geen sessie of schijf nodig, zodat de tests het los kunnen laden.
  */
 
+/**
+ * Optie- en kolomcodes horen zonder witruimte. Alle spaties, tabs en
+ * regeleinden gaan eruit; daarna wordt op $max tekens afgekapt.
+ */
+function kothar_clean_code(string $value, int $max = 40): string
+{
+    $value = preg_replace('/\s+/u', '', $value) ?? '';
+    if ($max >= 0 && mb_strlen($value) > $max) {
+        $value = mb_substr($value, 0, $max);
+    }
+
+    return $value;
+}
+
 function kothar_join_codes(array $codes): string
 {
     $parts = [];
@@ -295,7 +309,7 @@ function kothar_build_from_choices(array $category, array $choices, array $fills
         }
         $code = trim((string) ($option['code'] ?? ''));
         if ($code === '') {
-            $code = trim((string) ($fills[$columnId] ?? ''));
+            $code = kothar_clean_code((string) ($fills[$columnId] ?? ''));
             if ($code === '') {
                 return $fail('Vul een code in voor ' . $columnName . '.');
             }

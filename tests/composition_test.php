@@ -107,6 +107,9 @@ check($dotHit !== null && $dotHit['number'] === '10.5.2', 'code may contain a do
 
 $built = kothar_build_from_choices($mini, ['loc' => 'i', 'n' => 'n2', 'valve' => 'ns'], ['empty' => 'QQ']);
 check($built['ok'] === true && $built['number'] === 'I.2.QQ.NS', 'typed code fills an empty option');
+$spacedFill = kothar_build_from_choices($mini, ['loc' => 'i', 'n' => 'n2', 'valve' => 'ns'], ['empty' => " Q Q "]);
+check($spacedFill['ok'] === true && $spacedFill['number'] === 'I.2.QQ.NS', 'typed column code drops spaces');
+check($spacedFill['selections'][2]['code'] === 'QQ', 'saved fill code has no spaces');
 $missing = kothar_build_from_choices($mini, ['loc' => 'i', 'n' => 'n2', 'valve' => 'ns'], []);
 check($missing['ok'] === false, 'empty option requires a typed code');
 
