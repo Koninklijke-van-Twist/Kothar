@@ -6,8 +6,10 @@ require_once __DIR__ . '/user.php';
 
 function kothar_page_open(string $title): void
 {
+    $csrf = kothar_csrf_token();
     $full = $title === 'Kothar' ? 'Kothar' : $title . ' · Kothar';
     echo '<!DOCTYPE html><html lang="nl"><head><meta charset="utf-8">';
+    echo '<meta name="csrf-token" content="' . kothar_h($csrf) . '">';
     echo '<meta name="viewport" content="width=device-width, initial-scale=1">';
     echo '<title>' . kothar_h($full) . '</title>';
     echo '<link rel="icon" href="favicon.svg" type="image/svg+xml">';

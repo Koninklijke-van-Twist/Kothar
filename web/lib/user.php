@@ -68,29 +68,106 @@ function kothar_is_admin(): bool
     return in_array($email, kothar_admin_emails(), true);
 }
 
+function kothar_ensure_session(): void
+{
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+}
+
+/**
+ * Token in de sessie, met een kopie in een cookie die aan het sessie-id hangt.
+ * De loginlaag kan extra sessiesleutels wissen. Een gedeeltelijke opslag
+ * (één kolom of één optie) stuurt het token uit de pagina mee; ontbreekt het
+ * in de sessie, dan herstelt de cookie het. Een sessie die al een ander token
+ * heeft, wordt niet overschreven.
+ */
 function kothar_csrf_token(): string
 {
-    if (session_status() !== PHP_SESSION_ACTIVE) {
+    kothar_ensure_session();
+    $token = $_SESSION['kothar_csrf'] ?? '';
+    if (!is_string($token) || !preg_match('/^[a-f0-9]{32}$/', $token)) {
+        $token = kothar_csrf_from_cookie();
+    }
+    if ($token === '') {
+        $token = bin2hex(random_bytes(16));
+    }
+    $_SESSION['kothar_csrf'] = $token;
+    kothar_csrf_set_cookie($token);
+
+    return $token;
+}
+
+function kothar_csrf_from_cookie(): string
+{
+    $raw = (string) ($_COOKIE['kothar_csrf'] ?? '');
+    $parts = explode('.', $raw, 2);
+    if (count($parts) !== 2) {
         return '';
     }
-    $token = $_SESSION['kothar_csrf'] ?? '';
-    if (!is_string($token) || $token === '') {
-        $token = bin2hex(random_bytes(16));
-        $_SESSION['kothar_csrf'] = $token;
+    $token = $parts[0];
+    $signature = $parts[1];
+    if (!preg_match('/^[a-f0-9]{32}$/', $token) || session_id() === '') {
+        return '';
+    }
+    $expected = hash_hmac('sha256', $token, session_id());
+    if (!hash_equals($expected, $signature)) {
+        return '';
     }
 
     return $token;
 }
 
+function kothar_csrf_set_cookie(string $token): void
+{
+    if ($token === '' || session_id() === '') {
+        return;
+    }
+    $value = $token . '.' . hash_hmac('sha256', $token, session_id());
+    $_COOKIE['kothar_csrf'] = $value;
+    if (headers_sent() || PHP_SAPI === 'cli') {
+        return;
+    }
+    $https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+        || ((string) ($_SERVER['SERVER_PORT'] ?? '') === '443');
+    setcookie('kothar_csrf', $value, [
+        'expires' => 0,
+        'path' => '/',
+        'secure' => $https,
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ]);
+}
+
+function kothar_csrf_matches(): bool
+{
+    kothar_ensure_session();
+    $sent = (string) ($_POST['csrf'] ?? '');
+    if (!preg_match('/^[a-f0-9]{32}$/', $sent)) {
+        return false;
+    }
+    $have = $_SESSION['kothar_csrf'] ?? '';
+    if (!is_string($have) || !preg_match('/^[a-f0-9]{32}$/', $have)) {
+        $have = kothar_csrf_from_cookie();
+        if ($have !== '') {
+            $_SESSION['kothar_csrf'] = $have;
+        }
+    }
+    if (!is_string($have) || $have === '') {
+        return false;
+    }
+
+    return hash_equals($have, $sent);
+}
+
 function kothar_csrf_check(): void
 {
-    $sent = (string) ($_POST['csrf'] ?? '');
-    $have = (string) ($_SESSION['kothar_csrf'] ?? '');
-    if ($have === '' || !hash_equals($have, $sent)) {
-        http_response_code(400);
-        echo 'Ongeldige sessie. Laad de pagina opnieuw.';
-        exit;
+    if (kothar_csrf_matches()) {
+        return;
     }
+    http_response_code(400);
+    echo 'Ongeldige sessie. Laad de pagina opnieuw.';
+    exit;
 }
 
 function kothar_csrf_field(): string

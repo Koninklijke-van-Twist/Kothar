@@ -269,6 +269,149 @@ function kothar_move_item(array $items, int $index, int $direction): array
     return array_values($items);
 }
 
+/**
+ * Zet items in de opgegeven id-volgorde. Ontbrekende items blijven achteraan,
+ * zodat een gedeeltelijke opslag niets wist.
+ *
+ * @param array<int, mixed> $items
+ * @param array<int, mixed> $ids
+ * @return array<int, array<string, mixed>>
+ */
+function kothar_order_by_id(array $items, array $ids): array
+{
+    $map = [];
+    foreach ($items as $item) {
+        if (!is_array($item)) {
+            continue;
+        }
+        $id = (string) ($item['id'] ?? '');
+        if ($id === '' || isset($map[$id])) {
+            continue;
+        }
+        $map[$id] = $item;
+    }
+    $ordered = [];
+    $seen = [];
+    foreach ($ids as $id) {
+        $id = (string) $id;
+        if ($id === '' || isset($seen[$id]) || !isset($map[$id])) {
+            continue;
+        }
+        $ordered[] = $map[$id];
+        $seen[$id] = true;
+    }
+    foreach ($map as $id => $item) {
+        if (!isset($seen[$id])) {
+            $ordered[] = $item;
+        }
+    }
+
+    return array_values($ordered);
+}
+
+/**
+ * @param array<string, mixed> $column
+ * @param array<int, mixed> $postedOptions
+ * @return array<string, mixed>
+ */
+function kothar_apply_column_edit(array $column, string $name, string $hint, array $postedOptions): array
+{
+    $existing = [];
+    $current = $column['options'] ?? [];
+    if (!is_array($current)) {
+        $current = [];
+    }
+    foreach ($current as $option) {
+        if (!is_array($option)) {
+            continue;
+        }
+        $id = (string) ($option['id'] ?? '');
+        if ($id === '' || isset($existing[$id])) {
+            continue;
+        }
+        $existing[$id] = $option;
+    }
+
+    $next = [];
+    $seen = [];
+    foreach ($postedOptions as $posted) {
+        if (!is_array($posted)) {
+            continue;
+        }
+        $id = (string) ($posted['id'] ?? '');
+        $label = (string) ($posted['label'] ?? '');
+        $code = (string) ($posted['code'] ?? '');
+        $description = (string) ($posted['description'] ?? '');
+        if ($label === '') {
+            if ($id !== '' && isset($existing[$id]) && !isset($seen[$id])) {
+                $next[] = $existing[$id];
+                $seen[$id] = true;
+            }
+            continue;
+        }
+        if ($description === '') {
+            $description = $label;
+        }
+        if ($id !== '' && isset($existing[$id])) {
+            if (isset($seen[$id])) {
+                continue;
+            }
+            $option = $existing[$id];
+            $option['label'] = $label;
+            $option['code'] = $code;
+            $option['description'] = $description;
+            $next[] = $option;
+            $seen[$id] = true;
+            continue;
+        }
+        if ($id !== '') {
+            continue;
+        }
+        $next[] = [
+            'id' => kothar_new_id('opt-'),
+            'label' => $label,
+            'code' => $code,
+            'description' => $description,
+        ];
+    }
+    foreach ($existing as $id => $option) {
+        if (!isset($seen[$id])) {
+            $next[] = $option;
+        }
+    }
+
+    $column['name'] = $name;
+    $column['hint'] = $hint;
+    $column['options'] = $next;
+
+    return $column;
+}
+
+/**
+ * @param array<string, mixed> $column
+ * @return array<string, mixed>
+ */
+function kothar_remove_column_option(array $column, string $optionId): array
+{
+    $current = $column['options'] ?? [];
+    if (!is_array($current)) {
+        $current = [];
+    }
+    $options = [];
+    foreach ($current as $option) {
+        if (!is_array($option)) {
+            continue;
+        }
+        if ((string) ($option['id'] ?? '') === $optionId) {
+            continue;
+        }
+        $options[] = $option;
+    }
+    $column['options'] = array_values($options);
+
+    return $column;
+}
+
 function kothar_attachments_dir(string $compositionId, ?string $dir = null): string
 {
     if (!preg_match('/^c_[a-f0-9]{16}$/', $compositionId)) {
