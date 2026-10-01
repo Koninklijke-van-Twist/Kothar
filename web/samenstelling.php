@@ -128,12 +128,24 @@ if ($row === null && $numberQuery !== '') {
         foreach ($hit['selections'] as $selection) {
             echo '<li><strong>' . kothar_h($selection['columnName']) . '</strong> · ';
             echo kothar_h($selection['label']) . ' <code>' . kothar_h($selection['code']) . '</code>';
-            echo '<br><span>' . kothar_h($selection['description']) . '</span></li>';
+            $selectionDescription = trim((string) ($selection['description'] ?? ''));
+            if ($selectionDescription !== '') {
+                echo '<br><span>' . kothar_h($selectionDescription) . '</span>';
+            }
+            echo '</li>';
         }
         echo '</ul>';
         $query = ['categorie' => $hit['categoryId']];
         foreach ($hit['selections'] as $selection) {
             $query['keuze'][$selection['columnId']] = $selection['optionId'];
+            $selectionCode = (string) ($selection['code'] ?? '');
+            $isVector = kothar_parse_hwl_code($selectionCode) !== null || kothar_parse_diameter_code($selectionCode) !== null;
+            $isQuantity = $selectionCode !== ''
+                && preg_match('/^\d+$/', $selectionCode) === 1
+                && trim((string) ($selection['description'] ?? '')) === '';
+            if ($isVector || $isQuantity) {
+                $query['invul'][$selection['columnId']] = $selectionCode;
+            }
         }
         echo '<p><a class="button" href="bouwen.php?' . kothar_h(http_build_query($query)) . '">Open in de samensteller</a></p>';
         echo '</section>';

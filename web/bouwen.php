@@ -33,6 +33,11 @@ if (!is_array($choices)) {
 if (!is_array($fills)) {
     $fills = [];
 }
+$measures = $_REQUEST['maat'] ?? [];
+if (!is_array($measures)) {
+    $measures = [];
+}
+$fills = kothar_fills_with_measures($category, $choices, $fills, $measures);
 
 if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
     kothar_csrf_check();
@@ -113,10 +118,58 @@ foreach ($category['columns'] as $column) {
         }
     }
     $fill = (string) ($fills[$columnId] ?? '');
+    $kind = kothar_column_kind($column);
+    $mode = is_array($selected) ? kothar_option_vector($selected) : '';
+    if ($kind === 'hwl') {
+        $mode = 'hwl';
+    } elseif ($kind === 'diameter') {
+        $mode = 'diameter';
+    }
+    $meters = ['h' => '', 'b' => '', 'l' => '', 'd' => ''];
+    $hwlParts = kothar_parse_hwl_code($fill);
+    if (is_array($hwlParts)) {
+        $meters['h'] = $hwlParts['h'];
+        $meters['b'] = $hwlParts['b'];
+        $meters['l'] = $hwlParts['l'];
+        if ($kind === 'dimensions') {
+            $mode = 'hwl';
+        }
+    }
+    $diameterParts = kothar_parse_diameter_code($fill);
+    if (is_array($diameterParts)) {
+        $meters['d'] = $diameterParts['d'];
+        $meters['l'] = $diameterParts['l'];
+        if ($kind === 'dimensions') {
+            $mode = 'diameter';
+        }
+    }
     $segment = '';
     $valid = false;
     $needsFill = false;
-    if (is_array($selected)) {
+    $current = '';
+    if ($kind === 'quantity') {
+        $needsFill = true;
+        $quantityCode = kothar_clean_code($fill);
+        $valid = preg_match('/^\d+$/', $quantityCode) === 1;
+        $segment = $valid ? $quantityCode : '';
+        $current = $valid ? $quantityCode : kothar_quantity_prompt($column);
+    } elseif ($kind === 'hwl' || $kind === 'diameter' || $kind === 'dimensions') {
+        $needsFill = true;
+        if ($mode === 'hwl' && is_array($hwlParts)) {
+            $segment = $fill;
+            $valid = true;
+        } elseif ($mode === 'diameter' && is_array($diameterParts)) {
+            $segment = $fill;
+            $valid = true;
+        }
+        if ($segment !== '') {
+            $current = $segment;
+        } elseif ($mode !== '') {
+            $current = 'Vul de maten in';
+        } else {
+            $current = 'Kies ⌀×L of H×B×L';
+        }
+    } elseif (is_array($selected)) {
         $optionCode = trim((string) ($selected['code'] ?? ''));
         if ($optionCode === '') {
             $needsFill = true;
@@ -126,6 +179,7 @@ foreach ($category['columns'] as $column) {
             $segment = $optionCode;
             $valid = true;
         }
+        $current = (string) ($selected['label'] ?? '');
     }
     $cards = [];
     foreach ($optionRows as $option) {
@@ -141,6 +195,7 @@ foreach ($category['columns'] as $column) {
             'color' => kothar_segment_color($code),
             'needsFill' => $code === '',
             'selected' => (string) ($option['id'] ?? '') === $picked && $picked !== '',
+            'vector' => kothar_option_vector($option),
         ];
     }
     $steps[] = [
@@ -152,9 +207,14 @@ foreach ($category['columns'] as $column) {
         'color' => $segment !== '' ? kothar_segment_color($segment) : '',
         'valid' => $valid,
         'needsFill' => $needsFill,
-        'current' => is_array($selected) ? (string) ($selected['label'] ?? '') : '',
-        'fillError' => $needsFill && str_contains($fill, '.'),
+        'current' => $current,
+        'fillError' => $kind === 'choices' && $needsFill && str_contains($fill, '.'),
         'cards' => $cards,
+        'kind' => $kind,
+        'mode' => $mode,
+        'meters' => $meters,
+        'prompt' => $kind === 'quantity' ? kothar_quantity_prompt($column) : '',
+        'optionId' => is_array($selected) ? (string) ($selected['id'] ?? '') : (count($optionRows) === 1 ? (string) ($optionRows[0]['id'] ?? '') : ''),
     ];
 }
 
@@ -162,7 +222,7 @@ kothar_page_open((string) $category['name']);
 echo '<p class="crumb"><a href="index.php">Start</a> · Samenstellen</p>';
 echo '<h1>' . kothar_h((string) $category['name']) . '</h1>';
 echo '<p class="lead">' . kothar_h((string) ($category['description'] ?? '')) . '</p>';
-echo '<p class="hint">Kies per kolom één kaart. Het nummer bovenaan volgt meteen. De eerste keer klapt die kolom dicht en gaat de volgende open.</p>';
+echo '<p class="hint">Kies per kolom één kaart. Afmetingen en quantity vul je in. Het nummer bovenaan volgt meteen.</p>';
 
 $doneCount = 0;
 foreach ($steps as $step) {
@@ -192,12 +252,16 @@ echo '<input type="hidden" name="categorie" value="' . kothar_h($categoryId) . '
 
 foreach ($steps as $index => $step) {
     $open = $index === 0 ? ' open' : '';
-    echo '<details class="step' . ($step['valid'] ? ' is-done' : '') . '" data-step data-complete="' . ($step['valid'] ? '1' : '0') . '"' . $open . '>';
+    echo '<details class="step' . ($step['valid'] ? ' is-done' : '') . '" data-step data-kind="' . kothar_h($step['kind']) . '"';
+    if ($step['prompt'] !== '') {
+        echo ' data-prompt="' . kothar_h($step['prompt']) . '"';
+    }
+    echo ' data-complete="' . ($step['valid'] ? '1' : '0') . '"' . $open . '>';
     echo '<summary>';
     echo '<span class="step-no">' . ($index + 1) . '</span>';
     echo '<span class="step-title"><span class="step-name">' . kothar_h($step['name']) . '</span>';
     $current = $step['current'] !== '' ? $step['current'] : 'Kies…';
-    if ($step['needsFill'] && $step['segment'] !== '') {
+    if ($step['kind'] === 'choices' && $step['needsFill'] && $step['segment'] !== '') {
         $current .= ' · ' . $step['segment'];
     }
     echo '<span class="step-current" data-current>' . kothar_h($current) . '</span></span>';
@@ -208,6 +272,59 @@ foreach ($steps as $index => $step) {
     }
     echo '</summary>';
     echo '<div class="step-body">';
+    if ($step['kind'] === 'quantity') {
+        $fillId = 'invul-' . $step['id'];
+        echo '<div class="quantity-fill">';
+        echo '<input type="hidden" name="keuze[' . kothar_h($step['id']) . ']" value="' . kothar_h($step['optionId']) . '">';
+        echo '<label for="' . kothar_h($fillId) . '">' . kothar_h($step['prompt']) . '</label>';
+        echo '<input id="' . kothar_h($fillId) . '" name="invul[' . kothar_h($step['id']) . ']" data-quantity type="number" min="0" step="1" inputmode="numeric" value="' . kothar_h($step['segment']) . '" autocomplete="off">';
+        echo '</div></div></details>';
+        continue;
+    }
+    if ($step['kind'] === 'hwl' || $step['kind'] === 'diameter' || $step['kind'] === 'dimensions') {
+        if ($step['kind'] === 'dimensions') {
+            echo '<div class="mode-row">';
+            foreach ($step['cards'] as $card) {
+                $vector = (string) ($card['vector'] ?? '');
+                if ($vector !== 'hwl' && $vector !== 'diameter') {
+                    continue;
+                }
+                $modeLabel = $vector === 'hwl' ? 'H×B×L' : '⌀×L';
+                $modeText = $vector === 'hwl' ? 'Hoogte × breedte × lengte' : 'Diameter × lengte';
+                echo '<label class="mode-option">';
+                echo '<input type="radio" name="keuze[' . kothar_h($step['id']) . ']" value="' . kothar_h($card['id']) . '" data-vector="' . kothar_h($vector) . '"';
+                if ($step['mode'] === $vector) {
+                    echo ' checked';
+                }
+                echo '>';
+                echo '<span><strong>' . kothar_h($modeLabel) . '</strong> ' . kothar_h($modeText) . '</span>';
+                echo '</label>';
+            }
+            echo '</div>';
+        } else {
+            echo '<input type="hidden" name="keuze[' . kothar_h($step['id']) . ']" value="' . kothar_h($step['optionId']) . '">';
+        }
+        echo '<p class="hint">Maten in meters.</p>';
+        $showHwl = $step['kind'] === 'hwl' || ($step['kind'] === 'dimensions' && $step['mode'] === 'hwl');
+        $showDiameter = $step['kind'] === 'diameter' || ($step['kind'] === 'dimensions' && $step['mode'] === 'diameter');
+        if ($step['kind'] !== 'diameter') {
+            $disabled = $showHwl ? '' : ' disabled';
+            echo '<div class="measure-grid" data-measures="hwl"' . ($showHwl ? '' : ' hidden') . '>';
+            echo '<label>Hoogte (m) <input type="number" name="maat[' . kothar_h($step['id']) . '][h]" data-measure="h" min="0" step="any" inputmode="decimal" value="' . kothar_h($step['meters']['h']) . '"' . $disabled . '></label>';
+            echo '<label>Breedte (m) <input type="number" name="maat[' . kothar_h($step['id']) . '][b]" data-measure="b" min="0" step="any" inputmode="decimal" value="' . kothar_h($step['meters']['b']) . '"' . $disabled . '></label>';
+            echo '<label>Lengte (m) <input type="number" name="maat[' . kothar_h($step['id']) . '][l]" data-measure="l" min="0" step="any" inputmode="decimal" value="' . kothar_h($step['meters']['l']) . '"' . $disabled . '></label>';
+            echo '</div>';
+        }
+        if ($step['kind'] !== 'hwl') {
+            $disabled = $showDiameter ? '' : ' disabled';
+            echo '<div class="measure-grid" data-measures="diameter"' . ($showDiameter ? '' : ' hidden') . '>';
+            echo '<label>Diameter (m) <input type="number" name="maat[' . kothar_h($step['id']) . '][d]" data-measure="d" min="0" step="any" inputmode="decimal" value="' . kothar_h($step['meters']['d']) . '"' . $disabled . '></label>';
+            echo '<label>Lengte (m) <input type="number" name="maat[' . kothar_h($step['id']) . '][dl]" data-measure="l" min="0" step="any" inputmode="decimal" value="' . kothar_h($step['meters']['l']) . '"' . $disabled . '></label>';
+            echo '</div>';
+        }
+        echo '</div></details>';
+        continue;
+    }
     if ($step['hint'] !== '') {
         echo '<p class="hint">Codes in het blad: ' . kothar_h($step['hint']) . '</p>';
     }
@@ -264,7 +381,11 @@ if ($built['ok']) {
     foreach ($built['selections'] as $selection) {
         echo '<li><strong>' . kothar_h($selection['columnName']) . '</strong> · ';
         echo kothar_h($selection['label']) . ' <code>' . kothar_h($selection['code']) . '</code>';
-        echo '<br><span>' . kothar_h($selection['description']) . '</span></li>';
+        $selectionDescription = trim((string) ($selection['description'] ?? ''));
+        if ($selectionDescription !== '') {
+            echo '<br><span>' . kothar_h($selectionDescription) . '</span>';
+        }
+        echo '</li>';
     }
     echo '</ul>';
     if ($existing !== null) {

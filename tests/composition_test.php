@@ -105,6 +105,56 @@ $dotted = [
 $dotHit = kothar_parse_category_number($dotted, '10.5.2');
 check($dotHit !== null && $dotHit['number'] === '10.5.2', 'code may contain a dot');
 
+check(kothar_format_hwl('3', '2', '5') === 'H3xB2xL5', 'hwl code is H3xB2xL5');
+check(kothar_format_hwl('3.0', '2', '5.00') === 'H3xB2xL5', 'dimension code drops trailing zeros');
+check(kothar_format_diameter('4', '8') === '⌀4xL8', 'diameter code is ⌀4xL8');
+check(kothar_format_hwl('3 m', '2', '5') === null, 'a dimension rejects letters');
+
+$dim = [
+    'id' => 'dim',
+    'name' => 'Dim',
+    'columns' => [
+        [
+            'id' => 'shape',
+            'name' => 'Shape',
+            'options' => [
+                ['id' => 'c', 'label' => 'Cylindrical', 'code' => 'C', 'description' => 'C'],
+            ],
+        ],
+        [
+            'id' => 'size',
+            'name' => 'Dimensions',
+            'options' => [
+                ['id' => 'dia', 'label' => '⌀diameterxLength', 'code' => '⌀xL', 'description' => '⌀diameterxLength'],
+                ['id' => 'box', 'label' => 'HeightxWidthxLength', 'code' => 'HWL', 'description' => 'HeightxWidthxLength'],
+            ],
+        ],
+        [
+            'id' => 'qty',
+            'name' => 'Quantity',
+            'options' => [
+                ['id' => 'q', 'label' => '00 to 99', 'code' => '', 'description' => '00 to 99 — geen vette code in het bronblad; vul bij het samenstellen een code in.'],
+            ],
+        ],
+    ],
+];
+check(kothar_column_kind($dim['columns'][1]) === 'dimensions', 'tank dimensions are a mode, not a code list');
+check(kothar_column_kind($dim['columns'][2]) === 'quantity', 'quantity is a numeric fill');
+$dimBuilt = kothar_build_from_choices($dim, ['shape' => 'c', 'size' => 'box'], ['size' => 'H3xB2xL5', 'qty' => ' 3 ']);
+check($dimBuilt['ok'] === true && $dimBuilt['number'] === 'C.H3xB2xL5.3', 'build encodes H×B×L and quantity');
+check($dimBuilt['selections'][2]['description'] === '', 'quantity description does not cite the sheet');
+$dimDia = kothar_build_from_choices($dim, ['size' => 'dia'], ['size' => '⌀4xL8', 'qty' => '1']);
+check($dimDia['ok'] === true && $dimDia['number'] === 'C.⌀4xL8.1', 'build encodes ⌀×L');
+$dimParsed = kothar_parse_category_number($dim, 'C.H1.5xB2xL0.8.3');
+check($dimParsed !== null && $dimParsed['selections'][1]['code'] === 'H1.5xB2xL0.8', 'dimension segment may contain dots');
+check($dimParsed !== null && $dimParsed['selections'][2]['code'] === '3', 'quantity follows a dimension segment');
+$dimLegacy = kothar_parse_category_number($dim, 'C.HWL.3');
+check($dimLegacy !== null && $dimLegacy['selections'][1]['code'] === 'HWL' && $dimLegacy['selections'][2]['code'] === '3', 'literal HWL plus quantity parses');
+$mergedMeasures = kothar_fills_with_measures($dim, ['size' => 'box'], [], ['size' => ['h' => '3', 'b' => '2', 'l' => '5']]);
+check(($mergedMeasures['size'] ?? '') === 'H3xB2xL5', 'meter inputs become H3xB2xL5');
+$mergedDiameter = kothar_fills_with_measures($dim, ['size' => 'dia'], [], ['size' => ['d' => '4', 'dl' => '8', 'l' => '99']]);
+check(($mergedDiameter['size'] ?? '') === '⌀4xL8', 'diameter inputs ignore the height length field');
+
 $built = kothar_build_from_choices($mini, ['loc' => 'i', 'n' => 'n2', 'valve' => 'ns'], ['empty' => 'QQ']);
 check($built['ok'] === true && $built['number'] === 'I.2.QQ.NS', 'typed code fills an empty option');
 $spacedFill = kothar_build_from_choices($mini, ['loc' => 'i', 'n' => 'n2', 'valve' => 'ns'], ['empty' => " Q Q "]);
@@ -172,6 +222,31 @@ check(
     $sheetExample !== null && $sheetExample['number'] === 'I.2.WS.05 L.Y.N',
     'sheet example 05L matches bold code 05 L'
 );
+
+$tankNumber = 'O.SS.C.HWL.SG.D.T.2C.N.F.Y.3';
+$tankHits = kothar_parse_number($seed['categories'], $tankNumber);
+$tankHit = null;
+foreach ($tankHits as $hit) {
+    if (($hit['categoryId'] ?? '') === 'tanks') {
+        $tankHit = $hit;
+        break;
+    }
+}
+check($tankHit !== null && $tankHit['number'] === $tankNumber, 'Start recognizes O.SS.C.HWL.SG.D.T.2C.N.F.Y.3');
+check($tankHit !== null && ($tankHit['selections'][11]['code'] ?? '') === '3', 'the last tank segment is the quantity');
+check($tankHit !== null && ($tankHit['selections'][11]['description'] ?? 'x') === '', 'quantity parse does not cite the sheet');
+foreach ($seed['categories'] as $category) {
+    if (($category['id'] ?? '') !== 'tanks') {
+        continue;
+    }
+    $tankVector = kothar_parse_category_number($category, 'O.SS.C.H3xB2xL5.SG.D.T.2C.N.F.Y.3');
+    $tankDiameter = kothar_parse_category_number($category, 'O.SS.C.⌀4xL8.SG.D.T.2C.N.F.Y.3');
+    check($tankVector !== null && ($tankVector['selections'][3]['code'] ?? '') === 'H3xB2xL5', 'Start decodes H3xB2xL5');
+    check($tankVector !== null && ($tankVector['selections'][3]['optionId'] ?? '') === 'tanks-c4-o2', 'H3xB2xL5 is height × width × length');
+    check($tankDiameter !== null && ($tankDiameter['selections'][3]['code'] ?? '') === '⌀4xL8', 'Start decodes ⌀4xL8');
+    check($tankDiameter !== null && ($tankDiameter['selections'][3]['optionId'] ?? '') === 'tanks-c4-o1', '⌀4xL8 is diameter × length');
+    break;
+}
 
 $dir = sys_get_temp_dir() . '/kothar-test-' . bin2hex(random_bytes(4));
 mkdir($dir);

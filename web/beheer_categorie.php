@@ -286,6 +286,25 @@ foreach ($columns as $column) {
     echo '</div>';
 
     $options = is_array($column['options'] ?? null) ? $column['options'] : [];
+    $columnKind = kothar_column_kind($column);
+    if ($columnKind !== 'choices') {
+        echo '<p class="hint">' . kothar_h(kothar_column_admin_note($columnKind)) . '</p>';
+        foreach ($options as $option) {
+            if (!is_array($option)) {
+                continue;
+            }
+            echo '<input type="hidden" name="optie_id[]" value="' . kothar_h((string) ($option['id'] ?? '')) . '">';
+            echo '<input type="hidden" name="label[]" value="' . kothar_h((string) ($option['label'] ?? '')) . '">';
+            echo '<input type="hidden" name="code[]" value="' . kothar_h((string) ($option['code'] ?? '')) . '">';
+            echo '<input type="hidden" name="omschrijving[]" value="' . kothar_h((string) ($option['description'] ?? '')) . '">';
+        }
+        echo '<div class="column-save">';
+        echo '<button type="submit" name="actie" value="kolom-bewaar">Opslaan</button>';
+        echo '<button type="button" data-confirm="' . kothar_h($columnConfirm) . '" data-actie="kolom-verwijder">Verwijder kolom</button>';
+        echo '</div>';
+        echo '</form></div></details>';
+        continue;
+    }
     $orderIds = [];
     foreach ($options as $option) {
         if (is_array($option)) {
