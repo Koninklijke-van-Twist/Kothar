@@ -497,3 +497,78 @@
   suppress = false;
   renderCode();
 })();
+
+(function () {
+  var triggers = document.querySelectorAll("[data-confirm]");
+  if (!triggers.length || typeof HTMLDialogElement === "undefined") {
+    return;
+  }
+  var pending = null;
+  var dialog = document.createElement("dialog");
+  dialog.className = "modal";
+  dialog.innerHTML = ''
+    + '<div class="modal-card">'
+    + '<h2 id="bevestig-titel">Verwijderen</h2>'
+    + '<p id="bevestig-tekst"></p>'
+    + '<p class="hint" id="bevestig-noot" hidden></p>'
+    + '<div class="modal-actions">'
+    + '<button type="button" class="quiet" data-cancel>Annuleren</button>'
+    + '<button type="button" class="danger" data-ok>Verwijderen</button>'
+    + '</div></div>';
+  dialog.setAttribute("aria-labelledby", "bevestig-titel");
+  dialog.setAttribute("aria-describedby", "bevestig-tekst");
+  document.body.appendChild(dialog);
+  var text = dialog.querySelector("#bevestig-tekst");
+  var note = dialog.querySelector("#bevestig-noot");
+  var cancel = dialog.querySelector("[data-cancel]");
+  var ok = dialog.querySelector("[data-ok]");
+
+  function closeModal() {
+    pending = null;
+    if (dialog.open) {
+      dialog.close();
+    }
+  }
+
+  function openModal(button) {
+    pending = button;
+    text.textContent = button.getAttribute("data-confirm") || "Weet je zeker dat je dit wilt verwijderen?";
+    var extra = button.getAttribute("data-confirm-note") || "";
+    note.textContent = extra;
+    note.hidden = extra === "";
+    dialog.showModal();
+    cancel.focus();
+  }
+
+  Array.prototype.forEach.call(triggers, function (button) {
+    button.addEventListener("click", function (event) {
+      event.preventDefault();
+      openModal(button);
+    });
+  });
+
+  cancel.addEventListener("click", closeModal);
+  dialog.addEventListener("cancel", function () {
+    pending = null;
+  });
+  dialog.addEventListener("click", function (event) {
+    if (event.target === dialog) {
+      closeModal();
+    }
+  });
+  ok.addEventListener("click", function () {
+    var button = pending;
+    var form = button && button.form;
+    var actie = button ? (button.getAttribute("data-actie") || "") : "";
+    closeModal();
+    if (!form || actie === "") {
+      return;
+    }
+    var input = document.createElement("input");
+    input.type = "hidden";
+    input.name = "actie";
+    input.value = actie;
+    form.appendChild(input);
+    form.submit();
+  });
+})();

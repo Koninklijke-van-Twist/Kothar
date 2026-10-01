@@ -187,10 +187,14 @@ foreach ($columns as $column) {
     echo '<input type="hidden" name="kolom" value="' . kothar_h($columnId) . '">';
     echo '<label>Naam <input name="kolomnaam" required maxlength="120" value="' . kothar_h((string) ($column['name'] ?? '')) . '"></label>';
     echo '<label>Hint <input name="hint" maxlength="80" value="' . kothar_h((string) ($column['hint'] ?? '')) . '"></label>';
+    $columnName = trim((string) ($column['name'] ?? ''));
+    $columnConfirm = $columnName === ''
+        ? 'Weet je zeker dat je deze kolom wilt verwijderen?'
+        : 'Weet je zeker dat je de kolom ' . $columnName . ' wilt verwijderen?';
     echo '<button type="submit" name="actie" value="kolom-naam">Hernoem</button>';
     echo '<button type="submit" name="actie" value="kolom-omhoog">Omhoog</button>';
     echo '<button type="submit" name="actie" value="kolom-omlaag">Omlaag</button>';
-    echo '<button type="submit" name="actie" value="kolom-verwijder">Verwijder kolom</button>';
+    echo '<button type="button" data-confirm="' . kothar_h($columnConfirm) . '" data-actie="kolom-verwijder">Verwijder kolom</button>';
     echo '</form>';
 
     $options = is_array($column['options'] ?? null) ? $column['options'] : [];
@@ -209,10 +213,14 @@ foreach ($columns as $column) {
         echo '<label>Label <input name="label" required maxlength="160" value="' . kothar_h((string) ($option['label'] ?? '')) . '"></label>';
         echo '<label>Code <input name="code" maxlength="40" value="' . kothar_h((string) ($option['code'] ?? '')) . '"></label>';
         echo '<label>Omschrijving <input name="omschrijving" maxlength="800" value="' . kothar_h((string) ($option['description'] ?? '')) . '"></label>';
+        $optionLabel = trim((string) ($option['label'] ?? ''));
+        $optionConfirm = $optionLabel === ''
+            ? 'Weet je zeker dat je deze optie wilt verwijderen?'
+            : 'Weet je zeker dat je de optie ' . $optionLabel . ' wilt verwijderen?';
         echo '<button type="submit" name="actie" value="optie-bewaar">Opslaan</button>';
         echo '<button type="submit" name="actie" value="optie-omhoog">Omhoog</button>';
         echo '<button type="submit" name="actie" value="optie-omlaag">Omlaag</button>';
-        echo '<button type="submit" name="actie" value="optie-verwijder">Verwijder</button>';
+        echo '<button type="button" data-confirm="' . kothar_h($optionConfirm) . '" data-actie="optie-verwijder">Verwijder</button>';
         echo '</form>';
     }
 

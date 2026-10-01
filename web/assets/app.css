@@ -385,6 +385,41 @@ button:hover, .button:hover { background: var(--navy-2); }
 .builder-update button:hover { background: #fff; color: var(--navy-2); }
 #samenstelling-uitkomst { scroll-margin-top: 5.6rem; }
 
+.modal {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--ink);
+  max-width: calc(100% - 2rem);
+}
+.modal::backdrop { background: rgba(28, 36, 48, 0.48); }
+.modal-card {
+  width: min(28rem, 100%);
+  margin: 0;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 1rem 1.1rem 1.05rem;
+  box-shadow: 0 16px 40px rgba(28, 36, 48, 0.2);
+}
+.modal-card h2 { margin-bottom: 0.35rem; }
+.modal-card p { margin: 0.35rem 0 0; }
+.modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+.modal-card button.quiet {
+  background: transparent;
+  color: var(--navy);
+  border: 1px solid var(--line);
+}
+.modal-card button.quiet:hover { background: #fff; color: var(--navy-2); }
+.modal-card button.danger { background: var(--rust); color: #fff; }
+.modal-card button.danger:hover { background: #7d3b1b; }
+
 @media (min-width: 720px) {
   .option-grid { grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); }
 }
