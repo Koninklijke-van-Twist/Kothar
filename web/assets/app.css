@@ -338,12 +338,27 @@ button:hover, .button:hover { background: var(--navy-2); }
   padding: 0.7rem 1.8rem 0.75rem 0.8rem;
 }
 .option-name {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.55rem;
   font-weight: 650;
   line-height: 1.3;
+}
+.option-label {
+  min-width: 0;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+.option-code {
+  flex: none;
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 500;
+  line-height: 1.35;
+  white-space: nowrap;
 }
 .option-card .option-desc {
   margin: 0;

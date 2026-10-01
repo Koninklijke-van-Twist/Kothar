@@ -227,7 +227,11 @@ foreach ($steps as $index => $step) {
         echo '>';
         $topStyle = $card['color'] !== '' ? ' style="--seg: ' . kothar_h($card['color']) . '"' : '';
         echo '<span class="option-top"' . $topStyle . '></span>';
-        echo '<span class="option-body"><span class="option-name">' . kothar_h($card['label']) . '</span>';
+        echo '<span class="option-body"><span class="option-name"><span class="option-label">' . kothar_h($card['label']) . '</span>';
+        if ($card['code'] !== '') {
+            echo '<span class="option-code">' . kothar_h($card['code']) . '</span>';
+        }
+        echo '</span>';
         if ($card['showDescription']) {
             echo '<span class="option-desc">' . kothar_h($card['description']) . '</span>';
         }
