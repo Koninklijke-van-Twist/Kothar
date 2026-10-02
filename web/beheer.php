@@ -10,8 +10,8 @@ try {
     $doc = kothar_load_categories();
 } catch (Throwable $error) {
     http_response_code(500);
-    kothar_page_open('Beheer');
-    echo '<h1>Niet beschikbaar</h1><p>' . kothar_h($error->getMessage()) . '</p>';
+    kothar_page_open(LOC('kothar.nav.admin'));
+    echo '<h1>' . kothar_h(LOC('kothar.error.unavailable')) . '</h1><p>' . kothar_h($error->getMessage()) . '</p>';
     kothar_page_close();
     exit;
 }
@@ -32,7 +32,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
         $name = trim((string) ($_POST['naam'] ?? ''));
         $description = trim((string) ($_POST['omschrijving'] ?? ''));
         if ($name === '' || mb_strlen($name) > 120) {
-            kothar_flash('Geef een naam van maximaal 120 tekens.', 'warn');
+            kothar_flash(LOC('kothar.admin.name_length'), 'warn');
         } else {
             $categories[] = [
                 'id' => kothar_new_id('cat-'),
@@ -43,15 +43,15 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
             ];
             $doc['categories'] = $categories;
             kothar_save_categories($doc);
-            kothar_flash('Categorie toegevoegd.');
+            kothar_flash(LOC('kothar.admin.added'));
         }
     } elseif ($index === null) {
-        kothar_flash('Categorie niet gevonden.', 'warn');
+        kothar_flash(LOC('kothar.admin.not_found'), 'warn');
     } elseif ($action === 'verwijder') {
         array_splice($categories, $index, 1);
         $doc['categories'] = array_values($categories);
         kothar_save_categories($doc);
-        kothar_flash('Categorie verwijderd. Opgeslagen samenstellingen blijven staan.');
+        kothar_flash(LOC('kothar.admin.deleted'));
     } elseif ($action === 'omhoog' || $action === 'omlaag') {
         $doc['categories'] = kothar_move_item($categories, $index, $action === 'omhoog' ? -1 : 1);
         kothar_save_categories($doc);
@@ -59,12 +59,12 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
     kothar_redirect('beheer.php');
 }
 
-kothar_page_open('Beheer');
-echo '<h1>Categorieën</h1>';
-echo '<p class="lead">Alleen beheerders wijzigen categorieën, kolommen en opties. Samenstellen en opslaan kan iedere ingelogde gebruiker.</p>';
+kothar_page_open(LOC('kothar.nav.admin'));
+echo '<h1>' . kothar_h(LOC('kothar.admin.heading')) . '</h1>';
+echo '<p class="lead">' . kothar_h(LOC('kothar.admin.lead')) . '</p>';
 
 if ($doc['categories'] === []) {
-    echo '<p>Nog geen categorieën.</p>';
+    echo '<p>' . kothar_h(LOC('kothar.admin.empty')) . '</p>';
 } else {
     echo '<ol class="admin-list">';
     foreach ($doc['categories'] as $category) {
@@ -74,27 +74,28 @@ if ($doc['categories'] === []) {
         $id = (string) ($category['id'] ?? '');
         $href = 'beheer_categorie.php?id=' . rawurlencode($id);
         echo '<li><a href="' . kothar_h($href) . '"><strong>' . kothar_h((string) ($category['name'] ?? '')) . '</strong></a>';
-        echo '<span class="hint">' . count(is_array($category['columns'] ?? null) ? $category['columns'] : []) . ' kolommen</span>';
+        $columnCount = count(is_array($category['columns'] ?? null) ? $category['columns'] : []);
+        echo '<span class="hint">' . kothar_h(kothar_column_count($columnCount)) . '</span>';
         echo '<form method="post" class="inline-form">';
         echo kothar_csrf_field();
         echo '<input type="hidden" name="id" value="' . kothar_h($id) . '">';
         $name = trim((string) ($category['name'] ?? ''));
         $confirm = $name === ''
-            ? 'Weet je zeker dat je deze categorie wilt verwijderen?'
-            : 'Weet je zeker dat je de categorie ' . $name . ' wilt verwijderen?';
-        echo '<button type="submit" name="actie" value="omhoog">Omhoog</button>';
-        echo '<button type="submit" name="actie" value="omlaag">Omlaag</button>';
-        echo '<button type="button" data-confirm="' . kothar_h($confirm) . '" data-actie="verwijder" data-confirm-note="Opgeslagen samenstellingen blijven staan.">Verwijder</button>';
+            ? LOC('kothar.admin.confirm_delete')
+            : LOC('kothar.admin.confirm_delete_named', $name);
+        echo '<button type="submit" name="actie" value="omhoog">' . kothar_h(LOC('kothar.admin.up')) . '</button>';
+        echo '<button type="submit" name="actie" value="omlaag">' . kothar_h(LOC('kothar.admin.down')) . '</button>';
+        echo '<button type="button" data-confirm="' . kothar_h($confirm) . '" data-actie="verwijder" data-confirm-note="' . kothar_h(LOC('kothar.admin.delete_note')) . '">' . kothar_h(LOC('kothar.admin.delete')) . '</button>';
         echo '</form></li>';
     }
     echo '</ol>';
 }
 
-echo '<section class="panel"><h2>Nieuwe categorie</h2>';
+echo '<section class="panel"><h2>' . kothar_h(LOC('kothar.admin.new_category')) . '</h2>';
 echo '<form method="post" class="stack">';
 echo kothar_csrf_field();
-echo '<label for="naam">Naam</label><input id="naam" name="naam" required maxlength="120">';
-echo '<label for="omschrijving">Omschrijving</label><textarea id="omschrijving" name="omschrijving" maxlength="800" rows="3"></textarea>';
-echo '<button type="submit" name="actie" value="nieuw">Toevoegen</button>';
+echo '<label for="naam">' . kothar_h(LOC('kothar.admin.name')) . '</label><input id="naam" name="naam" required maxlength="120">';
+echo '<label for="omschrijving">' . kothar_h(LOC('kothar.admin.description')) . '</label><textarea id="omschrijving" name="omschrijving" maxlength="800" rows="3"></textarea>';
+echo '<button type="submit" name="actie" value="nieuw">' . kothar_h(LOC('kothar.admin.add')) . '</button>';
 echo '</form></section>';
 kothar_page_close();

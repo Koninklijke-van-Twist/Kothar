@@ -29,6 +29,12 @@ jobs:
       - name: Composition number tests
         run: php tests/composition_test.php
 
+      - name: Admin tests
+        run: php tests/admin_test.php
+
+      - name: Localization tests
+        run: php tests/localization_test.php
+
       - name: FTP remote dir guard
         run: bash tests/guard_ftp_remote_dir_test.sh
 

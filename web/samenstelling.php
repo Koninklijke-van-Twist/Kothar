@@ -9,8 +9,8 @@ try {
     $doc = kothar_load_compositions();
 } catch (Throwable $error) {
     http_response_code(500);
-    kothar_page_open('Samenstelling');
-    echo '<h1>Niet beschikbaar</h1><p>' . kothar_h($error->getMessage()) . '</p>';
+    kothar_page_open(LOC('kothar.detail.title'));
+    echo '<h1>' . kothar_h(LOC('kothar.error.unavailable')) . '</h1><p>' . kothar_h($error->getMessage()) . '</p>';
     kothar_page_close();
     exit;
 }
@@ -32,32 +32,32 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && $row !== null) {
     if ($action === 'prijs') {
         $price = kothar_parse_price((string) ($_POST['prijs'] ?? ''));
         if ($price === null) {
-            kothar_flash('Prijs is ongeldig.', 'warn');
+            kothar_flash(LOC('kothar.build.price_invalid'), 'warn');
         } else {
             kothar_update_composition($compositionId, static function (array $current) use ($price): array {
                 $current['price'] = $price;
 
                 return $current;
             });
-            kothar_flash('Prijs opgeslagen.');
+            kothar_flash(LOC('kothar.detail.price_saved'));
         }
     } elseif ($action === 'upload') {
         $file = $_FILES['bijlage'] ?? null;
         if (!is_array($file) || (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
-            kothar_flash('Upload mislukt.', 'warn');
+            kothar_flash(LOC('kothar.detail.upload_failed'), 'warn');
         } elseif ((int) ($file['size'] ?? 0) > 8 * 1024 * 1024) {
-            kothar_flash('Het bestand is groter dan 8 MB.', 'warn');
+            kothar_flash(LOC('kothar.detail.too_big'), 'warn');
         } else {
             $stored = kothar_safe_attachment_name((string) ($file['name'] ?? ''));
             $tmp = (string) ($file['tmp_name'] ?? '');
             if ($stored === null || !is_uploaded_file($tmp)) {
-                kothar_flash('Dit bestandstype is niet toegestaan.', 'warn');
+                kothar_flash(LOC('kothar.detail.bad_type'), 'warn');
             } else {
                 $dir = kothar_attachments_dir($compositionId);
                 if (!is_dir($dir) && !mkdir($dir, 0775, true) && !is_dir($dir)) {
-                    kothar_flash('De bijlagenmap is niet schrijfbaar.', 'warn');
+                    kothar_flash(LOC('kothar.detail.dir_unwritable'), 'warn');
                 } elseif (!move_uploaded_file($tmp, $dir . '/' . $stored)) {
-                    kothar_flash('Opslaan van de bijlage mislukt.', 'warn');
+                    kothar_flash(LOC('kothar.detail.save_failed'), 'warn');
                 } else {
                     $original = basename(str_replace('\\', '/', (string) $file['name']));
                     $user = kothar_current_user();
@@ -75,7 +75,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && $row !== null) {
 
                         return $current;
                     });
-                    kothar_flash('Bijlage toegevoegd.');
+                    kothar_flash(LOC('kothar.detail.attached'));
                 }
             }
         }
@@ -104,7 +104,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && $row !== null) {
                     unlink($path);
                 }
             }
-            kothar_flash('Bijlage verwijderd.');
+            kothar_flash(LOC('kothar.detail.attachment_deleted'));
         }
     }
     kothar_redirect('samenstelling.php?id=' . rawurlencode($compositionId));
@@ -112,16 +112,17 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && $row !== null) {
 
 if ($row === null && $numberQuery !== '') {
     $parsed = kothar_parse_number($categories['categories'], $numberQuery);
-    kothar_page_open('Nummer opzoeken');
-    echo '<h1>Nummer opzoeken</h1>';
+    kothar_page_open(LOC('kothar.index.lookup'));
+    echo '<h1>' . kothar_h(LOC('kothar.index.lookup')) . '</h1>';
     echo '<p class="number">' . kothar_h(kothar_canonicalize_number($numberQuery)) . '</p>';
     if ($parsed === []) {
-        echo '<p>Dit nummer staat niet opgeslagen en past bij geen enkele categorie.</p>';
-        echo '<p><a href="index.php">Terug naar start</a></p>';
+        echo '<p>' . kothar_h(LOC('kothar.detail.no_match')) . '</p>';
+        echo '<p><a href="index.php">' . kothar_h(LOC('kothar.back.start')) . '</a></p>';
         kothar_page_close();
         exit;
     }
-    echo '<p>Het nummer staat nog niet opgeslagen. Het past bij ' . count($parsed) . ' categorie' . (count($parsed) === 1 ? '' : 'ën') . '.</p>';
+    $matchCount = count($parsed);
+    echo '<p>' . kothar_h($matchCount === 1 ? LOC('kothar.detail.matches_one') : LOC('kothar.detail.matches_many', $matchCount)) . '</p>';
     foreach ($parsed as $hit) {
         echo '<section class="panel"><h2>' . kothar_h($hit['categoryName']) . '</h2>';
         echo '<p class="number">' . kothar_h($hit['number']) . '</p><ul class="choice-list">';
@@ -147,7 +148,7 @@ if ($row === null && $numberQuery !== '') {
                 $query['invul'][$selection['columnId']] = $selectionCode;
             }
         }
-        echo '<p><a class="button" href="bouwen.php?' . kothar_h(http_build_query($query)) . '">Open in de samensteller</a></p>';
+        echo '<p><a class="button" href="bouwen.php?' . kothar_h(http_build_query($query)) . '">' . kothar_h(LOC('kothar.detail.open_builder')) . '</a></p>';
         echo '</section>';
     }
     kothar_page_close();
@@ -156,8 +157,8 @@ if ($row === null && $numberQuery !== '') {
 
 if ($row === null) {
     http_response_code(404);
-    kothar_page_open('Samenstelling');
-    echo '<h1>Samenstelling niet gevonden</h1><p><a href="samenstellingen.php">Naar het overzicht</a></p>';
+    kothar_page_open(LOC('kothar.detail.title'));
+    echo '<h1>' . kothar_h(LOC('kothar.detail.not_found')) . '</h1><p><a href="samenstellingen.php">' . kothar_h(LOC('kothar.back.list')) . '</a></p>';
     kothar_page_close();
     exit;
 }
@@ -168,13 +169,13 @@ $attachments = is_array($row['attachments'] ?? null) ? $row['attachments'] : [];
 $number = (string) ($row['number'] ?? '');
 
 kothar_page_open($number);
-echo '<p class="crumb"><a href="samenstellingen.php">Samenstellingen</a></p>';
+echo '<p class="crumb"><a href="samenstellingen.php">' . kothar_h(LOC('kothar.nav.compositions')) . '</a></p>';
 echo '<h1 class="number">' . kothar_h($number) . '</h1>';
 echo '<p>' . kothar_h((string) ($row['categoryName'] ?? '')) . '</p>';
 echo '<div data-barcode="' . kothar_h($number) . '" class="barcode"></div>';
 
-echo '<section><h2>Opties</h2>';
-echo '<table class="grid"><thead><tr><th>Kolom</th><th>Optie</th><th>Code</th><th>Omschrijving</th></tr></thead><tbody>';
+echo '<section><h2>' . kothar_h(LOC('kothar.detail.options')) . '</h2>';
+echo '<table class="grid"><thead><tr><th>' . kothar_h(LOC('kothar.detail.col.column')) . '</th><th>' . kothar_h(LOC('kothar.detail.col.option')) . '</th><th>' . kothar_h(LOC('kothar.detail.col.code')) . '</th><th>' . kothar_h(LOC('kothar.detail.col.description')) . '</th></tr></thead><tbody>';
 foreach ($selections as $selection) {
     if (!is_array($selection)) {
         continue;
@@ -187,22 +188,22 @@ foreach ($selections as $selection) {
 echo '</tbody></table></section>';
 
 echo '<section class="split">';
-echo '<div><h2>Geregistreerd door</h2>';
+echo '<div><h2>' . kothar_h(LOC('kothar.list.col.by')) . '</h2>';
 echo '<p>' . kothar_h((string) ($registrant['name'] ?? '')) . '<br>' . kothar_h((string) ($registrant['email'] ?? '')) . '</p>';
 echo '<p class="hint">' . kothar_h((string) ($row['createdAt'] ?? '')) . '</p></div>';
-echo '<div><h2>Prijs</h2>';
+echo '<div><h2>' . kothar_h(LOC('kothar.detail.price')) . '</h2>';
 echo '<form method="post" class="inline-form">';
 echo kothar_csrf_field();
 echo '<input type="hidden" name="id" value="' . kothar_h((string) $row['id']) . '">';
-echo '<label class="sr" for="prijs">Prijs</label>';
+echo '<label class="sr" for="prijs">' . kothar_h(LOC('kothar.detail.price')) . '</label>';
 $priceRaw = number_format((float) ($row['price'] ?? 0), 2, ',', '');
 echo '<input id="prijs" name="prijs" inputmode="decimal" value="' . kothar_h($priceRaw) . '" required>';
-echo '<button type="submit" name="actie" value="prijs">Prijs opslaan</button>';
+echo '<button type="submit" name="actie" value="prijs">' . kothar_h(LOC('kothar.detail.save_price')) . '</button>';
 echo '</form></div></section>';
 
-echo '<section><h2>Bijlagen</h2>';
+echo '<section><h2>' . kothar_h(LOC('kothar.detail.attachments')) . '</h2>';
 if ($attachments === []) {
-    echo '<p>Nog geen bijlagen.</p>';
+    echo '<p>' . kothar_h(LOC('kothar.detail.no_attachments')) . '</p>';
 } else {
     echo '<ul class="files">';
     foreach ($attachments as $attachment) {
@@ -210,12 +211,12 @@ if ($attachments === []) {
             continue;
         }
         $href = 'bijlage.php?id=' . rawurlencode((string) $row['id']) . '&bestand=' . rawurlencode((string) ($attachment['id'] ?? ''));
-        echo '<li><a href="' . kothar_h($href) . '">' . kothar_h((string) ($attachment['name'] ?? 'bijlage')) . '</a>';
+        echo '<li><a href="' . kothar_h($href) . '">' . kothar_h((string) ($attachment['name'] ?? LOC('kothar.detail.attachment_fallback'))) . '</a>';
         echo '<form method="post" class="inline-form">';
         echo kothar_csrf_field();
         echo '<input type="hidden" name="id" value="' . kothar_h((string) $row['id']) . '">';
         echo '<input type="hidden" name="bijlage" value="' . kothar_h((string) ($attachment['id'] ?? '')) . '">';
-        echo '<button type="submit" name="actie" value="verwijder-bijlage">Verwijder</button>';
+        echo '<button type="submit" name="actie" value="verwijder-bijlage">' . kothar_h(LOC('kothar.admin.delete')) . '</button>';
         echo '</form></li>';
     }
     echo '</ul>';
@@ -223,11 +224,11 @@ if ($attachments === []) {
 echo '<form method="post" enctype="multipart/form-data" class="inline-form">';
 echo kothar_csrf_field();
 echo '<input type="hidden" name="id" value="' . kothar_h((string) $row['id']) . '">';
-echo '<label for="bijlage">Bestand</label>';
+echo '<label for="bijlage">' . kothar_h(LOC('kothar.detail.file')) . '</label>';
 echo '<input id="bijlage" type="file" name="bijlage" required>';
-echo '<button type="submit" name="actie" value="upload">Upload</button>';
+echo '<button type="submit" name="actie" value="upload">' . kothar_h(LOC('kothar.detail.upload')) . '</button>';
 echo '</form>';
-echo '<p class="hint">pdf, afbeelding, tekst, Office, dwg of zip. Maximaal 8 MB.</p>';
+echo '<p class="hint">' . kothar_h(LOC('kothar.detail.file_hint')) . '</p>';
 echo '</section>';
 
 $query = ['categorie' => (string) ($row['categoryId'] ?? '')];
@@ -238,6 +239,6 @@ foreach ($selections as $selection) {
     $query['keuze'][(string) ($selection['columnId'] ?? '')] = (string) ($selection['optionId'] ?? '');
 }
 if (($query['categorie'] ?? '') !== '') {
-    echo '<p><a href="bouwen.php?' . kothar_h(http_build_query($query)) . '">Opnieuw samenstellen in deze categorie</a></p>';
+    echo '<p><a href="bouwen.php?' . kothar_h(http_build_query($query)) . '">' . kothar_h(LOC('kothar.detail.rebuild')) . '</a></p>';
 }
 kothar_page_close();

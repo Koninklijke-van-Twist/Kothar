@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/lib/bootstrap.php';
 
-kothar_page_open('Scannen');
-echo '<h1>Barcode scannen</h1>';
-echo '<p class="lead">Scan een Code128 van een samenstellingsnummer. De camera werkt op localhost en via HTTPS.</p>';
+kothar_page_open(LOC('kothar.nav.scan'));
+echo '<h1>' . kothar_h(LOC('kothar.scan.heading')) . '</h1>';
+echo '<p class="lead">' . kothar_h(LOC('kothar.scan.lead')) . '</p>';
 echo '<div class="scanner" data-scanner>';
-echo '<p data-status>Start de camera of vul het nummer in.</p>';
-echo '<button type="button" data-start>Camera starten</button>';
+echo '<p data-status>' . kothar_h(LOC('kothar.scan.start_hint')) . '</p>';
+echo '<button type="button" data-start>' . kothar_h(LOC('kothar.scan.start_camera')) . '</button>';
 echo '<video hidden playsinline muted></video>';
 echo '</div>';
 echo '<form method="get" action="samenstelling.php" class="inline-form">';
-echo '<label for="nummer">Nummer</label>';
+echo '<label for="nummer">' . kothar_h(LOC('kothar.scan.number')) . '</label>';
 echo '<input id="nummer" name="nummer" required autocomplete="off" placeholder="I.2.20">';
-echo '<button type="submit">Open</button>';
+echo '<button type="submit">' . kothar_h(LOC('kothar.scan.open')) . '</button>';
 echo '</form>';
-echo '<p class="hint">Zonder barcodedetector in de browser blijft dit invoerveld werken.</p>';
+echo '<p class="hint">' . kothar_h(LOC('kothar.scan.fallback_hint')) . '</p>';
 kothar_page_close();

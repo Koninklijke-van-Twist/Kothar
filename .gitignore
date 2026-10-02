@@ -10,6 +10,10 @@ web/data/*
 web/data/attachments/*
 !web/data/attachments/.gitkeep
 !web/data/attachments/.htaccess
+!web/data/user_prefs/
+web/data/user_prefs/*
+!web/data/user_prefs/.gitkeep
+!web/data/user_prefs/.htaccess
 
 # OS-rommel
 .DS_Store
