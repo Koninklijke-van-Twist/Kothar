@@ -16,6 +16,9 @@
 
 * { box-sizing: border-box; }
 
+/* Author display rules (button, flex, grid) must not beat the hidden attribute. */
+[hidden] { display: none !important; }
+
 body {
   margin: 0;
   color: var(--ink);
@@ -184,6 +187,7 @@ button, .button {
   text-decoration: none;
   cursor: pointer;
 }
+button[hidden], .button[hidden] { display: none !important; }
 button:hover, .button:hover { background: var(--navy-2); }
 .inline-form, .option-row {
   display: flex;

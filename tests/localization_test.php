@@ -120,6 +120,17 @@ $after = glob($prefsDir . '/*') ?: [];
 check(getUserPrefsPath('not-an-email') === null, 'invalid email has no prefs path');
 check($before === $after, 'invalid email does not write a prefs file');
 
+$scanSource = (string) file_get_contents(__DIR__ . '/../web/scannen.php');
+check(str_contains($scanSource, 'data-msg-no-detector'), 'scanner source embeds data-msg-no-detector');
+check(str_contains($scanSource, "LOC('kothar.scan.no_detector')"), 'no-detector notice is rendered with LOC');
+check(str_contains($scanSource, 'data-msg-aim'), 'scanner source embeds data-msg-aim');
+check(str_contains($scanSource, 'data-msg-camera-unavailable'), 'scanner source embeds data-msg-camera-unavailable');
+$appJs = (string) file_get_contents(__DIR__ . '/../web/assets/app.js');
+check(str_contains($appJs, 'scanText("data-msg-no-detector"'), 'scanner script prefers the server no-detector message');
+$appCss = (string) file_get_contents(__DIR__ . '/../web/assets/app.css');
+check(str_contains($appCss, 'button[hidden], .button[hidden] { display: none !important; }'), 'hidden buttons override author display');
+check(str_contains($appCss, '[hidden] { display: none !important; }'), 'hidden attribute wins over author display rules');
+
 if (is_dir($prefsDir)) {
     foreach (glob($prefsDir . '/*') ?: [] as $file) {
         if (is_file($file)) {

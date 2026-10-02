@@ -47,10 +47,17 @@ function kotharFmt(key) {
   var video = root.querySelector("video");
   var status = root.querySelector("[data-status]");
   var start = root.querySelector("[data-start]");
+  function scanText(attr, key) {
+    var value = root.getAttribute(attr);
+    if (value) {
+      return value;
+    }
+    return kotharT(key);
+  }
   var detectorOk = "BarcodeDetector" in window && navigator.mediaDevices && navigator.mediaDevices.getUserMedia;
   if (!detectorOk) {
     if (status) {
-      status.textContent = kotharT("kothar.scan.no_detector");
+      status.textContent = scanText("data-msg-no-detector", "kothar.scan.no_detector");
     }
     if (video) {
       video.hidden = true;
@@ -71,7 +78,7 @@ function kotharFmt(key) {
       video.hidden = false;
       return video.play();
     }).then(function () {
-      status.textContent = kotharT("kothar.scan.aim");
+      status.textContent = scanText("data-msg-aim", "kothar.scan.aim");
       timer = window.setInterval(function () {
         detector.detect(video).then(function (codes) {
           if (!codes || !codes.length) {
@@ -89,7 +96,7 @@ function kotharFmt(key) {
         }).catch(function () {});
       }, 400);
     }).catch(function () {
-      status.textContent = kotharT("kothar.scan.camera_unavailable");
+      status.textContent = scanText("data-msg-camera-unavailable", "kothar.scan.camera_unavailable");
     });
   });
 })();
