@@ -47,6 +47,19 @@ function kothar_column_count(int $count): string
     return LOC('kothar.index.columns_many', $count);
 }
 
+/**
+ * URL onder web/ met ?v=filemtime, zodat browsers een nieuwe app.js ophalen.
+ * Ontbreekt het bestand, dan valt de versie terug op time().
+ */
+function kothar_asset(string $relativePath): string
+{
+    $relativePath = ltrim($relativePath, '/');
+    $absolute = __DIR__ . '/../' . $relativePath;
+    $mtime = is_file($absolute) ? filemtime($absolute) : false;
+
+    return $relativePath . '?v=' . ($mtime === false ? time() : $mtime);
+}
+
 function kothar_page_open(string $title): void
 {
     $csrf = kothar_csrf_token();
@@ -58,7 +71,7 @@ function kothar_page_open(string $title): void
     echo '<title>' . kothar_h($full) . '</title>';
     echo '<link rel="icon" href="favicon.svg" type="image/svg+xml">';
     echo '<link rel="manifest" href="site.webmanifest">';
-    echo '<link rel="stylesheet" href="assets/app.css">';
+    echo '<link rel="stylesheet" href="' . kothar_h(kothar_asset('assets/app.css')) . '">';
     renderLanguageSwitcherStyles();
     echo '</head><body>';
     echo '<a class="skip" href="#inhoud">' . kothar_h(LOC('kothar.skip')) . '</a>';
@@ -103,8 +116,8 @@ function kothar_page_close(): void
     echo '</main>';
     echo '<footer class="site-footer"><div class="wrap">' . kothar_h(LOC('kothar.footer')) . '</div></footer>';
     echo '<script>window.KOTHAR_I18N=' . localizationJsTranslations(kothar_js_i18n_keys()) . ';</script>';
-    echo '<script src="assets/vendor/JsBarcode.all.min.js"></script>';
-    echo '<script src="assets/app.js"></script>';
+    echo '<script src="' . kothar_h(kothar_asset('assets/vendor/JsBarcode.all.min.js')) . '"></script>';
+    echo '<script src="' . kothar_h(kothar_asset('assets/app.js')) . '"></script>';
     renderLanguageSwitcherScript();
     echo '</body></html>';
 }
@@ -114,7 +127,7 @@ function kothar_render_setup_page(): void
     echo '<!DOCTYPE html><html lang="' . kothar_h(getHtmlLang()) . '"><head><meta charset="utf-8">';
     echo '<meta name="viewport" content="width=device-width, initial-scale=1">';
     echo '<title>' . kothar_h(LOC('kothar.setup.title')) . '</title>';
-    echo '<link rel="stylesheet" href="assets/app.css">';
+    echo '<link rel="stylesheet" href="' . kothar_h(kothar_asset('assets/app.css')) . '">';
     echo '</head><body><main class="wrap narrow">';
     echo '<h1>' . kothar_h(LOC('kothar.setup.title')) . '</h1>';
     echo '<p>' . LOC(

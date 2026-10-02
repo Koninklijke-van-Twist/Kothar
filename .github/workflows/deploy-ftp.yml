@@ -35,6 +35,9 @@ jobs:
       - name: Localization tests
         run: php tests/localization_test.php
 
+      - name: Asset cache-bust tests
+        run: php tests/asset_test.php
+
       - name: FTP remote dir guard
         run: bash tests/guard_ftp_remote_dir_test.sh
 
