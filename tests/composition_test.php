@@ -109,6 +109,22 @@ check(kothar_format_hwl('3', '2', '5') === 'H3xB2xL5', 'hwl code is H3xB2xL5');
 check(kothar_format_hwl('3.0', '2', '5.00') === 'H3xB2xL5', 'dimension code drops trailing zeros');
 check(kothar_format_diameter('4', '8') === '⌀4xL8', 'diameter code is ⌀4xL8');
 check(kothar_format_hwl('3 m', '2', '5') === null, 'a dimension rejects letters');
+check(kothar_format_diameter('4', '') === null, 'diameter format still needs both fields');
+check(kothar_preview_measures('diameter', ['d' => '4', 'l' => ''], '') === '⌀4', 'partial diameter shows ⌀4');
+check(kothar_preview_measures('diameter', ['d' => '4', 'l' => ''], 'l') === '⌀4xL', 'focused length shows ⌀4xL');
+check(kothar_preview_measures('diameter', ['d' => '4', 'l' => '8'], '') === '⌀4xL8', 'complete diameter preview matches');
+check(kothar_preview_measures('diameter', ['d' => '4.', 'l' => ''], '') === '⌀4.', 'trailing dot stays visible while typing');
+check(kothar_preview_measures('diameter', ['d' => '4,5', 'l' => ''], '') === '⌀4.5', 'comma in a partial diameter becomes a dot');
+check(kothar_preview_measures('diameter', ['d' => '', 'l' => ''], 'd') === '', 'empty focused diameter shows nothing');
+check(kothar_preview_measures('hwl', ['h' => '3', 'b' => '', 'l' => ''], '') === 'H3', 'partial height shows H3');
+check(kothar_preview_measures('hwl', ['h' => '3', 'b' => '2', 'l' => ''], '') === 'H3xB2', 'height and width show H3xB2');
+check(kothar_preview_measures('hwl', ['h' => '3', 'b' => '2', 'l' => ''], 'l') === 'H3xB2xL', 'focused length shows H3xB2xL');
+check(kothar_preview_measures('hwl', ['h' => '3.0', 'b' => '2', 'l' => '5.00'], '') === 'H3xB2xL5', 'complete hwl preview drops trailing zeros');
+check(kothar_parse_diameter_code('⌀4') === null, 'partial diameter is not a valid code');
+check(kothar_parse_diameter_code('⌀4xL') === null, 'prefix-only length is not a valid code');
+check(kothar_parse_hwl_code('H3xB2') === null, 'partial hwl is not a valid code');
+$restoredDia = kothar_meters_from_request(['d' => '4', 'dl' => '8.', 'l' => '99'], 'diameter');
+check($restoredDia['d'] === '4' && $restoredDia['l'] === '8.', 'diameter request keeps the length draft and ignores hwl length');
 
 $dim = [
     'id' => 'dim',
@@ -154,6 +170,10 @@ $mergedMeasures = kothar_fills_with_measures($dim, ['size' => 'box'], [], ['size
 check(($mergedMeasures['size'] ?? '') === 'H3xB2xL5', 'meter inputs become H3xB2xL5');
 $mergedDiameter = kothar_fills_with_measures($dim, ['size' => 'dia'], [], ['size' => ['d' => '4', 'dl' => '8', 'l' => '99']]);
 check(($mergedDiameter['size'] ?? '') === '⌀4xL8', 'diameter inputs ignore the height length field');
+$partialDia = kothar_fills_with_measures($dim, ['size' => 'dia'], [], ['size' => ['d' => '4', 'dl' => '']]);
+check(($partialDia['size'] ?? '') === '', 'partial meters do not become a saved fill');
+$partialBuild = kothar_build_from_choices($dim, ['shape' => 'c', 'size' => 'dia'], ['size' => '⌀4', 'qty' => '1']);
+check($partialBuild['ok'] === false, 'partial diameter code is not a composition');
 
 $built = kothar_build_from_choices($mini, ['loc' => 'i', 'n' => 'n2', 'valve' => 'ns'], ['empty' => 'QQ']);
 check($built['ok'] === true && $built['number'] === 'I.2.QQ.NS', 'typed code fills an empty option');

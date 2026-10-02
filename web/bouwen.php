@@ -143,6 +143,12 @@ foreach ($category['columns'] as $column) {
             $mode = 'diameter';
         }
     }
+    if (!is_array($hwlParts) && !is_array($diameterParts)) {
+        $group = $measures[$columnId] ?? null;
+        if (is_array($group)) {
+            $meters = kothar_meters_from_request($group, $mode);
+        }
+    }
     $segment = '';
     $valid = false;
     $needsFill = false;
@@ -168,6 +174,13 @@ foreach ($category['columns'] as $column) {
             $current = 'Vul de maten in';
         } else {
             $current = 'Kies ⌀×L of H×B×L';
+        }
+        if (!$valid && ($mode === 'hwl' || $mode === 'diameter')) {
+            $preview = kothar_preview_measures($mode, $meters, '');
+            if ($preview !== '') {
+                $segment = $preview;
+                $current = $preview;
+            }
         }
     } elseif (is_array($selected)) {
         $optionCode = trim((string) ($selected['code'] ?? ''));
@@ -237,7 +250,7 @@ echo '<p class="code-meta"><span>Samenstellingsnummer</span><span data-progress>
 echo '<p class="code-live number" data-code-live>';
 foreach ($steps as $index => $step) {
     if ($index > 0) {
-        echo '<span class="code-dot">.</span>';
+        echo '<span class="code-dot">.</span><wbr>';
     }
     if ($step['segment'] === '') {
         echo '<span class="code-seg is-empty">—</span>';
@@ -277,7 +290,7 @@ foreach ($steps as $index => $step) {
         echo '<div class="quantity-fill">';
         echo '<input type="hidden" name="keuze[' . kothar_h($step['id']) . ']" value="' . kothar_h($step['optionId']) . '">';
         echo '<label for="' . kothar_h($fillId) . '">' . kothar_h($step['prompt']) . '</label>';
-        echo '<input id="' . kothar_h($fillId) . '" name="invul[' . kothar_h($step['id']) . ']" data-quantity type="number" min="0" step="1" inputmode="numeric" value="' . kothar_h($step['segment']) . '" autocomplete="off">';
+        echo '<input id="' . kothar_h($fillId) . '" name="invul[' . kothar_h($step['id']) . ']" data-quantity type="number" min="0" step="1" inputmode="numeric" enterkeyhint="next" value="' . kothar_h($step['segment']) . '" autocomplete="off">';
         echo '</div></div></details>';
         continue;
     }
@@ -310,16 +323,16 @@ foreach ($steps as $index => $step) {
         if ($step['kind'] !== 'diameter') {
             $disabled = $showHwl ? '' : ' disabled';
             echo '<div class="measure-grid" data-measures="hwl"' . ($showHwl ? '' : ' hidden') . '>';
-            echo '<label>Hoogte (m) <input type="number" name="maat[' . kothar_h($step['id']) . '][h]" data-measure="h" min="0" step="any" inputmode="decimal" value="' . kothar_h($step['meters']['h']) . '"' . $disabled . '></label>';
-            echo '<label>Breedte (m) <input type="number" name="maat[' . kothar_h($step['id']) . '][b]" data-measure="b" min="0" step="any" inputmode="decimal" value="' . kothar_h($step['meters']['b']) . '"' . $disabled . '></label>';
-            echo '<label>Lengte (m) <input type="number" name="maat[' . kothar_h($step['id']) . '][l]" data-measure="l" min="0" step="any" inputmode="decimal" value="' . kothar_h($step['meters']['l']) . '"' . $disabled . '></label>';
+            echo '<label>Hoogte (m) <input type="number" name="maat[' . kothar_h($step['id']) . '][h]" data-measure="h" min="0" step="any" inputmode="decimal" enterkeyhint="next" value="' . kothar_h($step['meters']['h']) . '"' . $disabled . '></label>';
+            echo '<label>Breedte (m) <input type="number" name="maat[' . kothar_h($step['id']) . '][b]" data-measure="b" min="0" step="any" inputmode="decimal" enterkeyhint="next" value="' . kothar_h($step['meters']['b']) . '"' . $disabled . '></label>';
+            echo '<label>Lengte (m) <input type="number" name="maat[' . kothar_h($step['id']) . '][l]" data-measure="l" min="0" step="any" inputmode="decimal" enterkeyhint="next" value="' . kothar_h($step['meters']['l']) . '"' . $disabled . '></label>';
             echo '</div>';
         }
         if ($step['kind'] !== 'hwl') {
             $disabled = $showDiameter ? '' : ' disabled';
             echo '<div class="measure-grid" data-measures="diameter"' . ($showDiameter ? '' : ' hidden') . '>';
-            echo '<label>Diameter (m) <input type="number" name="maat[' . kothar_h($step['id']) . '][d]" data-measure="d" min="0" step="any" inputmode="decimal" value="' . kothar_h($step['meters']['d']) . '"' . $disabled . '></label>';
-            echo '<label>Lengte (m) <input type="number" name="maat[' . kothar_h($step['id']) . '][dl]" data-measure="l" min="0" step="any" inputmode="decimal" value="' . kothar_h($step['meters']['l']) . '"' . $disabled . '></label>';
+            echo '<label>Diameter (m) <input type="number" name="maat[' . kothar_h($step['id']) . '][d]" data-measure="d" min="0" step="any" inputmode="decimal" enterkeyhint="next" value="' . kothar_h($step['meters']['d']) . '"' . $disabled . '></label>';
+            echo '<label>Lengte (m) <input type="number" name="maat[' . kothar_h($step['id']) . '][dl]" data-measure="l" min="0" step="any" inputmode="decimal" enterkeyhint="next" value="' . kothar_h($step['meters']['l']) . '"' . $disabled . '></label>';
             echo '</div>';
         }
         echo '</div></details>';

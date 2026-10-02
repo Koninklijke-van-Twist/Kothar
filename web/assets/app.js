@@ -93,6 +93,9 @@
   var result = shell.querySelector("[data-result]");
   var suppress = false;
   var skipAdvance = false;
+  var allowSubmit = false;
+  var enterNavDone = false;
+  var lastEntry = null;
   var resultTimer = 0;
   var ticket = 0;
   var scrollResult = false;
@@ -137,13 +140,119 @@
     return text;
   }
 
+  // Zelfde regels als kothar_meter_draft() / kothar_preview_measures() in composition.php.
+  function meterDraft(raw) {
+    var text = String(raw == null ? "" : raw).replace(/\s+/g, "").replace(/,/g, ".");
+    if (text === "" || text === ".") {
+      return "";
+    }
+    if (/^\d+\.$/.test(text) || /^\d+(?:\.\d+)?$/.test(text)) {
+      return text;
+    }
+    return "";
+  }
+
+  function previewMeasures(mode, values, focus) {
+    var parts;
+    if (mode === "diameter") {
+      parts = [
+        { key: "d", prefix: "⌀", raw: String(values.d == null ? "" : values.d) },
+        { key: "l", prefix: "xL", raw: String(values.l == null ? "" : values.l) }
+      ];
+    } else if (mode === "hwl") {
+      parts = [
+        { key: "h", prefix: "H", raw: String(values.h == null ? "" : values.h) },
+        { key: "b", prefix: "xB", raw: String(values.b == null ? "" : values.b) },
+        { key: "l", prefix: "xL", raw: String(values.l == null ? "" : values.l) }
+      ];
+    } else {
+      return "";
+    }
+    var out = "";
+    var i;
+    var j;
+    for (i = 0; i < parts.length; i++) {
+      var raw = parts[i].raw;
+      var token = meterToken(raw);
+      var shown = token !== "" ? token : meterDraft(raw);
+      if (shown !== "") {
+        out += parts[i].prefix + shown;
+        continue;
+      }
+      var later = false;
+      for (j = i + 1; j < parts.length; j++) {
+        var laterRaw = parts[j].raw;
+        if (meterToken(laterRaw) !== "" || meterDraft(laterRaw) !== "") {
+          later = true;
+          break;
+        }
+      }
+      var rawTrim = raw.replace(/\s+/g, "");
+      var bare = rawTrim !== "" && shown === "";
+      if (focus === parts[i].key || later || bare) {
+        if (i === 0 && shown === "" && !later && !bare) {
+          break;
+        }
+        out += parts[i].prefix;
+        if (!later) {
+          break;
+        }
+        continue;
+      }
+      break;
+    }
+    return out;
+  }
+
   function measureBox(step, mode) {
     return step.querySelector('[data-measures="' + mode + '"]');
   }
 
+  function measureInput(box, name) {
+    return box ? box.querySelector('[data-measure="' + name + '"]') : null;
+  }
+
   function measureValue(box, name) {
-    var input = box ? box.querySelector('[data-measure="' + name + '"]') : null;
-    return meterToken(input ? input.value : "");
+    var input = measureInput(box, name);
+    if (!input || input.disabled) {
+      return "";
+    }
+    return meterToken(input.value);
+  }
+
+  function measureRaw(box, name) {
+    var input = measureInput(box, name);
+    if (!input || input.disabled) {
+      return "";
+    }
+    return String(input.value || "");
+  }
+
+  function measureFocus(box) {
+    var active = document.activeElement;
+    if (!active || !box || !box.contains(active) || !active.hasAttribute("data-measure")) {
+      return "";
+    }
+    return active.getAttribute("data-measure") || "";
+  }
+
+  function stepEntryFields(step) {
+    var kind = step.getAttribute("data-kind") || "choices";
+    if (kind === "quantity") {
+      return Array.prototype.slice.call(step.querySelectorAll("[data-quantity]"));
+    }
+    var mode = kind;
+    if (kind === "dimensions") {
+      var radio = step.querySelector("input[data-vector]:checked");
+      mode = radio ? (radio.getAttribute("data-vector") || "") : "";
+    }
+    var box = mode === "hwl" || mode === "diameter" ? measureBox(step, mode) : null;
+    if (!box) {
+      return [];
+    }
+    return Array.prototype.filter.call(box.querySelectorAll("[data-measure]"), function (input) {
+      return !input.disabled;
+    });
   }
 
   function syncMeasures(step) {
@@ -190,26 +299,27 @@
       }
       var box = mode === "hwl" || mode === "diameter" ? measureBox(step, mode) : null;
       var vectorCode = "";
+      var complete = false;
       if (mode === "hwl") {
-        var height = measureValue(box, "h");
-        var width = measureValue(box, "b");
-        var length = measureValue(box, "l");
-        if (height !== "" && width !== "" && length !== "") {
-          vectorCode = "H" + height + "xB" + width + "xL" + length;
-        }
+        vectorCode = previewMeasures("hwl", {
+          h: measureRaw(box, "h"),
+          b: measureRaw(box, "b"),
+          l: measureRaw(box, "l")
+        }, measureFocus(box));
+        complete = measureValue(box, "h") !== "" && measureValue(box, "b") !== "" && measureValue(box, "l") !== "";
       } else if (mode === "diameter") {
-        var diameter = measureValue(box, "d");
-        var diaLength = measureValue(box, "l");
-        if (diameter !== "" && diaLength !== "") {
-          vectorCode = "⌀" + diameter + "xL" + diaLength;
-        }
+        vectorCode = previewMeasures("diameter", {
+          d: measureRaw(box, "d"),
+          l: measureRaw(box, "l")
+        }, measureFocus(box));
+        complete = measureValue(box, "d") !== "" && measureValue(box, "l") !== "";
       }
       var vectorLabel = vectorCode;
       if (vectorLabel === "") {
         vectorLabel = mode === "" ? "Kies ⌀×L of H×B×L" : "Vul de maten in";
       }
       return {
-        valid: vectorCode !== "",
+        valid: complete,
         code: vectorCode,
         label: vectorLabel,
         color: vectorCode !== "" ? kotharSegmentColor(vectorCode) : "",
@@ -314,7 +424,7 @@
         done++;
       }
       if (index) {
-        html += '<span class="code-dot">.</span>';
+        html += '<span class="code-dot">.</span><wbr>';
       }
       if (!state.code) {
         html += '<span class="code-seg is-empty">—</span>';
@@ -514,20 +624,162 @@
     });
   }
 
+  form.addEventListener("focusin", function (event) {
+    var target = event.target;
+    if (!target || !target.hasAttribute) {
+      return;
+    }
+    if (target.hasAttribute("data-measure") || target.hasAttribute("data-quantity") || target.hasAttribute("data-fill") || target.type === "radio") {
+      lastEntry = target;
+    }
+  });
+
   form.addEventListener("pointerdown", function (event) {
     var target = event.target;
     skipAdvance = !!(target && target.closest && target.closest("summary"));
   });
 
-  form.addEventListener("keydown", function (event) {
-    if (event.key !== "Enter" || !event.target || event.target.type !== "radio") {
+  function isEnterKey(event) {
+    var key = event.key;
+    return key === "Enter" || key === "Go" || key === "Next" || event.keyCode === 13 || event.which === 13;
+  }
+
+  function isSubmitControl(el) {
+    if (!el || el.nodeType !== 1) {
+      return false;
+    }
+    if (el.tagName === "BUTTON") {
+      return (el.getAttribute("type") || "submit").toLowerCase() === "submit";
+    }
+    if (el.tagName === "INPUT") {
+      var type = (el.type || "").toLowerCase();
+      return type === "submit" || type === "image";
+    }
+    return false;
+  }
+
+  function refreshStep(step) {
+    syncStep(step);
+    renderCode();
+    syncUrl();
+    scheduleResult();
+  }
+
+  function advanceMeasureEnter(input, step) {
+    refreshStep(step);
+    var fields = stepEntryFields(step);
+    var index = fields.indexOf(input);
+    var next = index >= 0 ? fields[index + 1] : null;
+    if (next) {
+      next.focus({ preventScroll: true });
+      syncStep(step);
+      renderCode();
+      return;
+    }
+    var state = selectionOf(step);
+    if (!state.valid) {
+      return;
+    }
+    if (step.getAttribute("data-complete") !== "1") {
+      step.setAttribute("data-complete", "1");
+    }
+    if (step.open) {
+      finishForward(step);
+    }
+  }
+
+  function moveEnter(target) {
+    if (!target || !target.closest) {
+      return;
+    }
+    var step = target.closest("[data-step]");
+    if (!step) {
+      return;
+    }
+    if (target.type === "radio") {
+      if (target.hasAttribute("data-vector")) {
+        refreshStep(step);
+        var box = step.querySelector('[data-measures="' + target.getAttribute("data-vector") + '"]');
+        var first = box ? box.querySelector("[data-measure]:not([disabled])") : null;
+        if (first) {
+          first.focus({ preventScroll: true });
+          syncStep(step);
+          renderCode();
+        }
+        return;
+      }
+      maybeAdvance(step);
+      return;
+    }
+    if (target.hasAttribute("data-fill")) {
+      commitFill(step, true);
+      return;
+    }
+    if (target.hasAttribute("data-measure") || target.hasAttribute("data-quantity")) {
+      advanceMeasureEnter(target, step);
+    }
+  }
+
+  function blockEnter(event) {
+    if (!isEnterKey(event)) {
+      return;
+    }
+    var target = event.target;
+    if (!isSubmitControl(target)) {
+      allowSubmit = false;
+    }
+    if (!target || target.tagName === "TEXTAREA" || isSubmitControl(target)) {
       return;
     }
     event.preventDefault();
-    var step = event.target.closest("[data-step]");
-    if (step) {
-      maybeAdvance(step);
+    event.stopPropagation();
+    if (event.repeat || enterNavDone) {
+      return;
     }
+    enterNavDone = true;
+    moveEnter(target);
+  }
+
+  form.addEventListener("keydown", blockEnter, true);
+  form.addEventListener("keypress", blockEnter, true);
+  form.addEventListener("keyup", function (event) {
+    if (isEnterKey(event)) {
+      enterNavDone = false;
+    }
+  });
+
+  var updateButton = form.querySelector("[data-update]");
+  function armSubmit() {
+    allowSubmit = true;
+  }
+  if (updateButton) {
+    updateButton.addEventListener("click", armSubmit);
+    updateButton.addEventListener("keydown", function (event) {
+      if (event.key === "Enter" || event.key === " " || event.keyCode === 13) {
+        armSubmit();
+      }
+    });
+  }
+
+  form.addEventListener("submit", function (event) {
+    var ok = allowSubmit;
+    allowSubmit = false;
+    if (ok) {
+      enterNavDone = false;
+      return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+    if (!enterNavDone) {
+      var active = document.activeElement;
+      if (!active || !form.contains(active) || active === form || isSubmitControl(active)) {
+        active = lastEntry;
+      }
+      if (active && form.contains(active)) {
+        moveEnter(active);
+      }
+    }
+    enterNavDone = false;
   });
 
   steps().forEach(function (step) {
@@ -569,48 +821,51 @@
       });
     });
     var fill = step.querySelector("[data-fill]");
-    if (!fill) {
-      return;
+    if (fill) {
+      fill.addEventListener("input", function () {
+        refreshStep(step);
+      });
+      fill.addEventListener("blur", function () {
+        window.setTimeout(function () {
+          var allow = !skipAdvance;
+          skipAdvance = false;
+          commitFill(step, allow);
+        }, 180);
+      });
     }
-    fill.addEventListener("input", function () {
-      syncStep(step);
-      renderCode();
-      syncUrl();
-      scheduleResult();
-    });
-    fill.addEventListener("keydown", function (event) {
-      if (event.key !== "Enter") {
-        return;
-      }
-      event.preventDefault();
-      commitFill(step, true);
-    });
-    fill.addEventListener("blur", function () {
-      window.setTimeout(function () {
-        var allow = !skipAdvance;
-        skipAdvance = false;
-        commitFill(step, allow);
-      }, 180);
-    });
+    // Maten en quantity hebben geen [data-fill]. Die listeners horen hier,
+    // anders submit Enter de GET-form en ververst de pagina naar boven.
     Array.prototype.forEach.call(step.querySelectorAll("[data-measure], [data-quantity]"), function (input) {
-      input.addEventListener("input", function () {
+      var live = function () {
+        refreshStep(step);
+      };
+      input.addEventListener("input", live);
+      input.addEventListener("change", live);
+      input.addEventListener("keyup", live);
+      input.addEventListener("focus", function () {
         syncStep(step);
         renderCode();
-        syncUrl();
-        scheduleResult();
-      });
-      input.addEventListener("keydown", function (event) {
-        if (event.key !== "Enter") {
-          return;
-        }
-        event.preventDefault();
-        commitFill(step, true);
       });
       input.addEventListener("blur", function () {
         window.setTimeout(function () {
           var allow = !skipAdvance;
           skipAdvance = false;
-          commitFill(step, allow);
+          var fields = stepEntryFields(step);
+          var active = document.activeElement;
+          var inside = !!(active && fields.indexOf(active) !== -1);
+          refreshStep(step);
+          if (inside || !allow || input !== fields[fields.length - 1]) {
+            return;
+          }
+          if (step.getAttribute("data-complete") === "1") {
+            return;
+          }
+          var state = selectionOf(step);
+          if (!state.valid || !step.open) {
+            return;
+          }
+          step.setAttribute("data-complete", "1");
+          finishForward(step);
         }, 180);
       });
     });

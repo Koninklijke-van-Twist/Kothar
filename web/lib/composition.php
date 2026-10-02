@@ -141,6 +141,116 @@ function kothar_meter_token(string $raw): ?string
     return $raw;
 }
 
+/**
+ * Zichtbare tussenstand tijdens het typen (bijvoorbeeld "4.").
+ * Een complete maat gaat via kothar_meter_token(), die nullen achter de komma schrapt.
+ */
+function kothar_meter_draft(string $raw): string
+{
+    $raw = str_replace(',', '.', trim($raw));
+    $raw = preg_replace('/\s+/u', '', $raw) ?? '';
+    if ($raw === '' || $raw === '.') {
+        return '';
+    }
+    if (preg_match('/^\d+\.$/', $raw) === 1 || preg_match('/^\d+(?:\.\d+)?$/', $raw) === 1) {
+        return $raw;
+    }
+
+    return '';
+}
+
+function kothar_meter_input_value(string $raw): string
+{
+    $token = kothar_meter_token($raw);
+
+    return $token ?? kothar_meter_draft($raw);
+}
+
+/**
+ * Zelfde opbouw als de live code in web/assets/app.js (previewMeasures).
+ * $focus is '', 'h', 'b', 'l' of 'd'. Een lege focus toont alleen gevulde delen
+ * (⌀4, H3, H3xB2). Focus op het volgende lege veld toont het voorvoegsel (⌀4xL).
+ * De set is pas een echte code als kothar_format_hwl / kothar_format_diameter
+ * een string teruggeeft; een preview blijft ongeldig.
+ *
+ * @param array<string, mixed> $values
+ */
+function kothar_preview_measures(string $mode, array $values, string $focus = ''): string
+{
+    if ($mode === 'diameter') {
+        $parts = [
+            ['key' => 'd', 'prefix' => '⌀', 'raw' => (string) ($values['d'] ?? '')],
+            ['key' => 'l', 'prefix' => 'xL', 'raw' => (string) ($values['l'] ?? '')],
+        ];
+    } elseif ($mode === 'hwl') {
+        $parts = [
+            ['key' => 'h', 'prefix' => 'H', 'raw' => (string) ($values['h'] ?? '')],
+            ['key' => 'b', 'prefix' => 'xB', 'raw' => (string) ($values['b'] ?? '')],
+            ['key' => 'l', 'prefix' => 'xL', 'raw' => (string) ($values['l'] ?? '')],
+        ];
+    } else {
+        return '';
+    }
+
+    $out = '';
+    $count = count($parts);
+    for ($i = 0; $i < $count; $i++) {
+        $raw = $parts[$i]['raw'];
+        $token = kothar_meter_token($raw) ?? '';
+        $shown = $token !== '' ? $token : kothar_meter_draft($raw);
+        if ($shown !== '') {
+            $out .= $parts[$i]['prefix'] . $shown;
+            continue;
+        }
+        $later = false;
+        for ($j = $i + 1; $j < $count; $j++) {
+            $laterRaw = $parts[$j]['raw'];
+            $laterToken = kothar_meter_token($laterRaw) ?? '';
+            if ($laterToken !== '' || kothar_meter_draft($laterRaw) !== '') {
+                $later = true;
+                break;
+            }
+        }
+        $rawTrim = preg_replace('/\s+/u', '', $raw) ?? '';
+        $bare = $rawTrim !== '' && $shown === '';
+        if ($focus === $parts[$i]['key'] || $later || $bare) {
+            if ($i === 0 && $shown === '' && !$later && !$bare) {
+                break;
+            }
+            $out .= $parts[$i]['prefix'];
+            if (!$later) {
+                break;
+            }
+            continue;
+        }
+        break;
+    }
+
+    return $out;
+}
+
+/**
+ * @param array<string, mixed> $group
+ * @return array{h: string, b: string, l: string, d: string}
+ */
+function kothar_meters_from_request(array $group, string $mode): array
+{
+    $length = (string) ($group['l'] ?? '');
+    if ($mode === 'diameter') {
+        $posted = (string) ($group['dl'] ?? '');
+        $length = $posted !== '' ? $posted : $length;
+    } elseif ($length === '' && $mode === '') {
+        $length = (string) ($group['dl'] ?? '');
+    }
+
+    return [
+        'h' => kothar_meter_input_value((string) ($group['h'] ?? '')),
+        'b' => kothar_meter_input_value((string) ($group['b'] ?? '')),
+        'l' => kothar_meter_input_value($length),
+        'd' => kothar_meter_input_value((string) ($group['d'] ?? '')),
+    ];
+}
+
 function kothar_format_hwl(string $height, string $width, string $length): ?string
 {
     $height = kothar_meter_token($height);
