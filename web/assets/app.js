@@ -1,9 +1,28 @@
+function kotharT(key) {
+  var dict = window.KOTHAR_I18N || {};
+  if (Object.prototype.hasOwnProperty.call(dict, key)) {
+    return String(dict[key]);
+  }
+  return key;
+}
+
+function kotharFmt(key) {
+  var text = kotharT(key);
+  var args = Array.prototype.slice.call(arguments, 1);
+  var index = 0;
+  return text.replace(/%[ds]/g, function () {
+    var value = args[index];
+    index += 1;
+    return value == null ? "" : String(value);
+  });
+}
+
 (function () {
   var slot = document.querySelector("[data-barcode]");
   if (slot && typeof JsBarcode !== "undefined") {
     var value = slot.getAttribute("data-barcode") || "";
     if (!/^[\x00-\x7F]+$/.test(value)) {
-      slot.insertAdjacentHTML("afterend", "<p class=\"hint\">Code128 kan dit nummer niet tekenen omdat er tekens buiten ASCII in staan.</p>");
+      slot.insertAdjacentHTML("afterend", "<p class=\"hint\">" + kotharT("kothar.barcode.non_ascii") + "</p>");
     } else {
       var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
       slot.appendChild(svg);
@@ -16,7 +35,7 @@
           margin: 10
         });
       } catch (error) {
-        slot.insertAdjacentHTML("afterend", "<p class=\"hint\">De barcode kon niet worden gemaakt.</p>");
+        slot.insertAdjacentHTML("afterend", "<p class=\"hint\">" + kotharT("kothar.barcode.failed") + "</p>");
       }
     }
   }
@@ -31,7 +50,7 @@
   var detectorOk = "BarcodeDetector" in window && navigator.mediaDevices && navigator.mediaDevices.getUserMedia;
   if (!detectorOk) {
     if (status) {
-      status.textContent = "Deze browser heeft geen barcodedetector. Vul het nummer hieronder in.";
+      status.textContent = kotharT("kothar.scan.no_detector");
     }
     if (video) {
       video.hidden = true;
@@ -52,7 +71,7 @@
       video.hidden = false;
       return video.play();
     }).then(function () {
-      status.textContent = "Richt de camera op de barcode.";
+      status.textContent = kotharT("kothar.scan.aim");
       timer = window.setInterval(function () {
         detector.detect(video).then(function (codes) {
           if (!codes || !codes.length) {
@@ -70,7 +89,7 @@
         }).catch(function () {});
       }, 400);
     }).catch(function () {
-      status.textContent = "Camera niet beschikbaar. Vul het nummer handmatig in.";
+      status.textContent = kotharT("kothar.scan.camera_unavailable");
     });
   });
 })();
@@ -279,7 +298,7 @@
       if (!/^\d+$/.test(qtyCode)) {
         qtyCode = "";
       }
-      var prompt = step.getAttribute("data-prompt") || "Vul quantity in";
+      var prompt = step.getAttribute("data-prompt") || kotharT("kothar.build.quantity_prompt");
       return {
         valid: qtyCode !== "",
         code: qtyCode,
@@ -316,7 +335,7 @@
       }
       var vectorLabel = vectorCode;
       if (vectorLabel === "") {
-        vectorLabel = mode === "" ? "Kies ⌀×L of H×B×L" : "Vul de maten in";
+        vectorLabel = mode === "" ? kotharT("kothar.build.choose_vector") : kotharT("kothar.build.fill_measures");
       }
       return {
         valid: complete,
@@ -361,7 +380,7 @@
     var state = selectionOf(step);
     var current = step.querySelector("[data-current]");
     if (current) {
-      var text = state.label || "Kies…";
+      var text = state.label || kotharT("kothar.build.choose");
       var kind = step.getAttribute("data-kind") || "choices";
       if (kind === "choices" && state.needsFill && state.code) {
         text += " · " + state.code;
@@ -435,7 +454,7 @@
     });
     live.innerHTML = html;
     if (progress) {
-      progress.textContent = done + " van " + list.length;
+      progress.textContent = kotharFmt("kothar.build.progress", done, list.length);
     }
   }
 
@@ -620,7 +639,7 @@
         return;
       }
       result.removeAttribute("aria-busy");
-      result.innerHTML = '<p class="hint">Het nummer kon niet worden bijgewerkt. Gebruik “Werk nummer bij”.</p>';
+      result.innerHTML = '<p class="hint">' + kotharT("kothar.build.update_failed") + "</p>";
     });
   }
 
@@ -890,12 +909,12 @@
   dialog.className = "modal";
   dialog.innerHTML = ''
     + '<div class="modal-card">'
-    + '<h2 id="bevestig-titel">Verwijderen</h2>'
+    + '<h2 id="bevestig-titel">' + kotharT("kothar.confirm.title") + "</h2>"
     + '<p id="bevestig-tekst"></p>'
     + '<p class="hint" id="bevestig-noot" hidden></p>'
     + '<div class="modal-actions">'
-    + '<button type="button" class="quiet" data-cancel>Annuleren</button>'
-    + '<button type="button" class="danger" data-ok>Verwijderen</button>'
+    + '<button type="button" class="quiet" data-cancel>' + kotharT("kothar.confirm.cancel") + "</button>"
+    + '<button type="button" class="danger" data-ok>' + kotharT("kothar.confirm.delete") + "</button>"
     + '</div></div>';
   dialog.setAttribute("aria-labelledby", "bevestig-titel");
   dialog.setAttribute("aria-describedby", "bevestig-tekst");
@@ -914,7 +933,7 @@
 
   function openModal(button) {
     pending = button;
-    text.textContent = button.getAttribute("data-confirm") || "Weet je zeker dat je dit wilt verwijderen?";
+    text.textContent = button.getAttribute("data-confirm") || kotharT("kothar.confirm.fallback");
     var extra = button.getAttribute("data-confirm-note") || "";
     note.textContent = extra;
     note.hidden = extra === "";
@@ -1058,7 +1077,7 @@
   function messageFrom(text) {
     var raw = String(text || "").trim();
     if (raw === "") {
-      return "Opslaan mislukt.";
+      return kotharT("kothar.admin.save_failed");
     }
     try {
       var data = JSON.parse(raw);
@@ -1180,7 +1199,7 @@
       }
     });
     if (button) {
-      button.textContent = on ? "Volgorde aanpassen gereed" : "Volgorde aanpassen";
+      button.textContent = on ? kotharT("kothar.admin.reorder_done") : kotharT("kothar.admin.reorder");
       button.setAttribute("aria-pressed", on ? "true" : "false");
     }
     if (hint) {
@@ -1287,7 +1306,7 @@
         hideError();
       }).catch(function (error) {
         applyColumnOrder(serverOrder);
-        showError(error.message || "Ongeldige sessie. Laad de pagina opnieuw.");
+        showError(error.message || kotharT("kothar.error.invalid_session"));
       });
     });
   }
@@ -1393,7 +1412,7 @@
       var nameInput = form.querySelector('[name="kolomnaam"]');
       var nameLabel = column.querySelector(".column-name");
       if (nameInput && nameLabel) {
-        nameLabel.textContent = nameInput.value.trim() || "Kolom";
+        nameLabel.textContent = nameInput.value.trim() || kotharT("kothar.column.fallback");
       }
     });
     var optionList = form.querySelector("[data-option-list]");
@@ -1475,7 +1494,7 @@
           button.disabled = true;
           saveDirtyThenReorder().catch(function (error) {
             button.disabled = false;
-            showError(error.message || "Opslaan mislukt.");
+            showError(error.message || kotharT("kothar.admin.save_failed"));
           });
           return;
         }
@@ -1488,7 +1507,7 @@
 
   function openUnsaved(done) {
     if (typeof HTMLDialogElement === "undefined") {
-      if (window.confirm("Er zijn niet-opgeslagen wijzigingen. OK verwerpt ze en past de volgorde aan.")) {
+      if (window.confirm(kotharT("kothar.admin.unsaved_confirm"))) {
         done("discard");
       }
       return;
@@ -1497,12 +1516,12 @@
     dialog.className = "modal";
     dialog.innerHTML = ""
       + '<div class="modal-card">'
-      + "<h2>Niet-opgeslagen wijzigingen</h2>"
-      + "<p>Er zijn niet-opgeslagen wijzigingen. Wil je die opslaan of verwerpen voordat je de volgorde aanpast?</p>"
+      + "<h2>" + kotharT("kothar.admin.unsaved_title") + "</h2>"
+      + "<p>" + kotharT("kothar.admin.unsaved_body") + "</p>"
       + '<div class="modal-actions">'
-      + '<button type="button" class="quiet" data-cancel>Annuleren</button>'
-      + '<button type="button" class="quiet" data-discard>Verwerpen</button>'
-      + '<button type="button" data-save>Opslaan</button>'
+      + '<button type="button" class="quiet" data-cancel>' + kotharT("kothar.confirm.cancel") + "</button>"
+      + '<button type="button" class="quiet" data-discard>' + kotharT("kothar.admin.discard") + "</button>"
+      + '<button type="button" data-save>' + kotharT("kothar.admin.save") + "</button>"
       + "</div></div>";
     document.body.appendChild(dialog);
     var cancel = dialog.querySelector("[data-cancel]");

@@ -10,6 +10,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/layout.php';
 
 if (!is_file(__DIR__ . '/../auth.php')) {
+    require_once __DIR__ . '/../localization.php';
     http_response_code(503);
     kothar_render_setup_page();
     exit;
@@ -17,4 +18,5 @@ if (!is_file(__DIR__ . '/../auth.php')) {
 
 require_once __DIR__ . '/../auth.php';
 require_once __DIR__ . '/../logincheck.php';
+require_once __DIR__ . '/../localization.php';
 require_once __DIR__ . '/store.php';

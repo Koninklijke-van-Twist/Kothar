@@ -19,7 +19,7 @@ function kothar_current_user(): array
     $email = strtolower(trim((string) ($user['email'] ?? '')));
     $name = trim((string) ($user['name'] ?? ''));
     if ($name === '') {
-        $name = $email !== '' ? $email : 'Onbekend';
+        $name = $email !== '' ? $email : LOC('kothar.user.unknown');
     }
 
     return ['name' => $name, 'email' => $email];
@@ -166,7 +166,7 @@ function kothar_csrf_check(): void
         return;
     }
     http_response_code(400);
-    echo 'Ongeldige sessie. Laad de pagina opnieuw.';
+    echo LOC('kothar.error.invalid_session');
     exit;
 }
 

@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once dirname(__DIR__) . '/localization.php';
+
 /**
  * Samenstellingsnummers: codes met een punt ertussen, opzoeken en ontdubbelen.
  * Dit bestand heeft geen sessie of schijf nodig, zodat de tests het los kunnen laden.
@@ -100,25 +102,25 @@ function kothar_quantity_prompt(array $column): string
 {
     $name = (string) ($column['name'] ?? '');
     if (preg_match('/per\s*piece/iu', $name) === 1) {
-        return 'Vul quantity per stuk in';
+        return LOC('kothar.build.quantity_per_piece');
     }
 
-    return 'Vul quantity in';
+    return LOC('kothar.build.quantity_prompt');
 }
 
 function kothar_column_admin_note(string $kind): string
 {
     if ($kind === 'quantity') {
-        return 'Geen keuzelijst. De samensteller vult een getal in.';
+        return LOC('kothar.admin.note.quantity');
     }
     if ($kind === 'hwl') {
-        return 'Geen keuzelijst. De samensteller vult hoogte, breedte en lengte in meters in. De code wordt bijvoorbeeld H3xB2xL5.';
+        return LOC('kothar.admin.note.hwl');
     }
     if ($kind === 'diameter') {
-        return 'Geen keuzelijst. De samensteller vult diameter en lengte in meters in. De code wordt bijvoorbeeld ⌀4xL8.';
+        return LOC('kothar.admin.note.diameter');
     }
     if ($kind === 'dimensions') {
-        return 'Geen keuzelijst van codes. De samensteller kiest eerst ⌀×L of H×B×L en vult daarna de maten in meters in.';
+        return LOC('kothar.admin.note.dimensions');
     }
 
     return '';
@@ -607,14 +609,14 @@ function kothar_parse_category_number(array $category, string $number): ?array
                 if ($option === null) {
                     return null;
                 }
-                $label = $vectorMode === 'hwl' ? 'Hoogte × breedte × lengte' : 'Diameter × lengte';
+                $label = $vectorMode === 'hwl' ? LOC('kothar.build.mode_hwl') : LOC('kothar.build.mode_diameter');
                 $selections[] = [
                     'columnId' => (string) ($column['id'] ?? ''),
                     'columnName' => (string) ($column['name'] ?? ''),
                     'optionId' => (string) ($option['id'] ?? ''),
                     'label' => $label,
                     'code' => $vectorHit['code'],
-                    'description' => 'maten in meters',
+                    'description' => LOC('kothar.comp.measures_note'),
                 ];
                 $remaining = $vectorHit['rest'];
                 continue;
@@ -717,20 +719,20 @@ function kothar_build_from_choices(array $category, array $choices, array $fills
     };
     $columns = $category['columns'] ?? null;
     if (!is_array($columns) || $columns === []) {
-        return $fail('Deze categorie heeft geen kolommen.');
+        return $fail(LOC('kothar.comp.no_columns'));
     }
 
     $codes = [];
     $selections = [];
     foreach ($columns as $column) {
         if (!is_array($column)) {
-            return $fail('Ongeldige kolom.');
+            return $fail(LOC('kothar.comp.invalid_column'));
         }
         $columnId = (string) ($column['id'] ?? '');
-        $columnName = (string) ($column['name'] ?? 'Kolom');
+        $columnName = (string) ($column['name'] ?? LOC('kothar.column.fallback'));
         $options = $column['options'] ?? null;
         if (!is_array($options) || $options === []) {
-            return $fail('Kolom ' . $columnName . ' heeft geen opties.');
+            return $fail(LOC('kothar.comp.no_options', $columnName));
         }
         $picked = trim((string) ($choices[$columnId] ?? ''));
         if ($picked === '' && count($options) === 1 && is_array($options[0])) {
@@ -749,7 +751,7 @@ function kothar_build_from_choices(array $category, array $choices, array $fills
                 $option = $options[0];
             }
             if (!is_array($option)) {
-                return $fail('Vul quantity in.');
+                return $fail(LOC('kothar.comp.enter_quantity'));
             }
             $code = kothar_clean_code((string) ($fills[$columnId] ?? ''));
             if (preg_match('/^\d+$/', $code) !== 1) {
@@ -786,46 +788,46 @@ function kothar_build_from_choices(array $category, array $choices, array $fills
                 }
             }
             if ($mode !== 'hwl' && $mode !== 'diameter') {
-                return $fail('Kies ⌀×L of H×B×L voor ' . $columnName . '.');
+                return $fail(LOC('kothar.comp.choose_vector', $columnName));
             }
             if (!is_array($option)) {
-                return $fail('Kies ⌀×L of H×B×L voor ' . $columnName . '.');
+                return $fail(LOC('kothar.comp.choose_vector', $columnName));
             }
             $parsedVector = $mode === 'hwl' ? kothar_parse_hwl_code($posted) : kothar_parse_diameter_code($posted);
             if ($parsedVector === null) {
                 $message = $mode === 'hwl'
-                    ? 'Vul hoogte, breedte en lengte in meters in.'
-                    : 'Vul diameter en lengte in meters in.';
+                    ? LOC('kothar.comp.fill_hwl')
+                    : LOC('kothar.comp.fill_diameter');
                 return $fail($message);
             }
             $code = $mode === 'hwl'
                 ? kothar_format_hwl($parsedVector['h'], $parsedVector['b'], $parsedVector['l'])
                 : kothar_format_diameter($parsedVector['d'], $parsedVector['l']);
             if ($code === null) {
-                return $fail('Vul de maten in meters in.');
+                return $fail(LOC('kothar.comp.fill_measures'));
             }
             $codes[] = $code;
             $selections[] = [
                 'columnId' => $columnId,
                 'columnName' => $columnName,
                 'optionId' => (string) ($option['id'] ?? ''),
-                'label' => $mode === 'hwl' ? 'Hoogte × breedte × lengte' : 'Diameter × lengte',
+                'label' => $mode === 'hwl' ? LOC('kothar.build.mode_hwl') : LOC('kothar.build.mode_diameter'),
                 'code' => $code,
-                'description' => 'maten in meters',
+                'description' => LOC('kothar.comp.measures_note'),
             ];
             continue;
         }
         if ($option === null) {
-            return $fail('Kies een optie voor ' . $columnName . '.');
+            return $fail(LOC('kothar.comp.choose_option', $columnName));
         }
         $code = trim((string) ($option['code'] ?? ''));
         if ($code === '') {
             $code = kothar_clean_code((string) ($fills[$columnId] ?? ''));
             if ($code === '') {
-                return $fail('Vul een code in voor ' . $columnName . '.');
+                return $fail(LOC('kothar.comp.enter_code', $columnName));
             }
             if (str_contains($code, '.')) {
-                return $fail('De code voor ' . $columnName . ' mag geen punt bevatten.');
+                return $fail(LOC('kothar.comp.no_dot', $columnName));
             }
         }
         $codes[] = $code;
@@ -841,7 +843,7 @@ function kothar_build_from_choices(array $category, array $choices, array $fills
 
     $number = kothar_join_codes($codes);
     if ($number === '') {
-        return $fail('De samenstelling heeft geen code.');
+        return $fail(LOC('kothar.comp.no_code'));
     }
 
     return ['ok' => true, 'error' => '', 'number' => $number, 'selections' => $selections];

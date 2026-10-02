@@ -13,9 +13,10 @@ if (!is_string($path)) {
 }
 
 if (preg_match('#^/(data|lib)(/|$)#', $path) === 1 || $path === '/auth.php' || $path === '/auth_TEMPLATE.php') {
+    require_once __DIR__ . '/localization.php';
     http_response_code(403);
     header('Content-Type: text/plain; charset=utf-8');
-    echo 'Geen toegang';
+    echo LOC('kothar.error.forbidden');
 
     return true;
 }
