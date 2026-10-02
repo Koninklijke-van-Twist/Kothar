@@ -1080,6 +1080,13 @@
         return;
       }
       event.preventDefault();
+      var focusTarget = event.target.closest("[data-option-handle], [data-column-handle]");
+      if (!focusTarget) {
+        focusTarget = event.target.closest("summary");
+      }
+      if (focusTarget && typeof focusTarget.focus === "function") {
+        focusTarget.focus();
+      }
       dragItem = item;
       pointerId = event.pointerId;
       item.classList.add("is-dragging");
