@@ -114,6 +114,10 @@ check(kothar_preview_measures('diameter', ['d' => '4', 'l' => ''], '') === '⌀4
 check(kothar_preview_measures('diameter', ['d' => '4', 'l' => ''], 'l') === '⌀4xL', 'focused length shows ⌀4xL');
 check(kothar_preview_measures('diameter', ['d' => '4', 'l' => '8'], '') === '⌀4xL8', 'complete diameter preview matches');
 check(kothar_preview_measures('diameter', ['d' => '4.', 'l' => ''], '') === '⌀4.', 'trailing dot stays visible while typing');
+$builderSrc = (string) file_get_contents(__DIR__ . '/../web/bouwen.php');
+check(preg_match('/type="number"[^\n]*data-measure=/', $builderSrc) !== 1, 'measure inputs are text so a trailing dot stays readable');
+check(preg_match('/type="text"[^\n]*data-measure="d"[^\n]*inputmode="decimal"[^\n]*enterkeyhint="next"/', $builderSrc) === 1, 'diameter field keeps decimal keyboard and enter hint');
+check(preg_match('/data-quantity type="number"/', $builderSrc) === 1, 'quantity stays a whole-number input');
 check(kothar_preview_measures('diameter', ['d' => '4,5', 'l' => ''], '') === '⌀4.5', 'comma in a partial diameter becomes a dot');
 check(kothar_preview_measures('diameter', ['d' => '', 'l' => ''], 'd') === '', 'empty focused diameter shows nothing');
 check(kothar_preview_measures('hwl', ['h' => '3', 'b' => '', 'l' => ''], '') === 'H3', 'partial height shows H3');
