@@ -84,3 +84,7 @@ bash tests/guard_ftp_remote_dir_test.sh
 ```
 
 De tests raken geen netwerk en lezen geen `web/auth.php`.
+
+## Gebruikersbeheer
+
+Vaste admins (`opesket@kvt.nl`, `tfalken@kvt.nl`, `milanscheenloop@kvt.nl`) beheren de allowlist via `admin_users.php`. Die lijst staat in `web/data/access.sqlite`. Zolang die tabel leeg is, geldt `$allowedUsers` uit `auth.php`.
