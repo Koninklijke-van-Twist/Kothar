@@ -53,6 +53,8 @@ Een paar cellen in het blad hebben geen vette code (onder meer aantallen “00 t
 
 Bijlagen staan in `web/data/attachments/<samenstelling>/`. `web/data/.htaccess` blokkeert directe toegang; de ingebouwde server gebruikt `web/router.php` daarvoor.
 
+`web/analytics/analytics.sqlite` (en `*.sqlite-*`) blijft op de server staan bij een deploy. `analytics.php` schrijft `web/analytics/.htaccess` als die ontbreekt, zodat Apache de database weigert en `analytics.php` zelf bereikbaar blijft. De ingebouwde server weigert die sqlite-paden in `web/router.php`.
+
 ## Later
 
 Compatibiliteit tussen opties, verplichte keuzes en notities op de infopagina zijn niet gebouwd. Elke categorie heeft `"rules": []`. In de seed staat ook `rules.status` op `later`.
@@ -71,7 +73,7 @@ Verwacht pad:
 FTP_REMOTE_DIR=/var/www/html/kothar
 ```
 
-De job weigert te deployen als dat secret leeg is of geen pad onder `/var/www/html/…` is. `lftp mirror -R --delete` van `./web` slaat `auth.php`, `.htaccess`, `.htpasswd` en `data/` over, zodat prijzen, samenstellingen en bijlagen op de server blijven staan.
+De job weigert te deployen als dat secret leeg is of geen pad onder `/var/www/html/…` is. `lftp mirror -R --delete` van `./web` slaat `auth.php`, `.htaccess`, `.htpasswd`, `data/` en `analytics/*.sqlite` (inclusief `analytics/*.sqlite-*`) over, zodat prijzen, samenstellingen, bijlagen en de analytics-database op de server blijven staan.
 
 ## Tests
 
@@ -81,6 +83,7 @@ php tests/admin_test.php
 php tests/localization_test.php
 php tests/asset_test.php
 bash tests/guard_ftp_remote_dir_test.sh
+php tests/analytics_protect_test.php
 ```
 
 De tests raken geen netwerk en lezen geen `web/auth.php`.
