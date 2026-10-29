@@ -68,11 +68,19 @@ function kothar_is_admin(): bool
     return in_array($email, kothar_admin_emails(), true);
 }
 
-function kothar_ensure_session(): void
+/**
+ * Schrijft naar de sessie zonder de lock vast te houden: is de sessie dicht,
+ * dan kort heropenen, schrijven en weer sluiten. Na verzonden headers kan dat
+ * niet meer; dan blijft de wijziging alleen voor dit request in $_SESSION.
+ */
+function kothar_session_write(callable $write): void
 {
-    if (session_status() === PHP_SESSION_NONE) {
-        session_start();
+    if (session_status() === PHP_SESSION_ACTIVE || headers_sent() || !@session_start()) {
+        $write();
+        return;
     }
+    $write();
+    session_write_close();
 }
 
 /**
@@ -84,7 +92,6 @@ function kothar_ensure_session(): void
  */
 function kothar_csrf_token(): string
 {
-    kothar_ensure_session();
     $token = $_SESSION['kothar_csrf'] ?? '';
     if (!is_string($token) || !preg_match('/^[a-f0-9]{32}$/', $token)) {
         $token = kothar_csrf_from_cookie();
@@ -92,7 +99,11 @@ function kothar_csrf_token(): string
     if ($token === '') {
         $token = bin2hex(random_bytes(16));
     }
-    $_SESSION['kothar_csrf'] = $token;
+    if (($_SESSION['kothar_csrf'] ?? '') !== $token) {
+        kothar_session_write(static function () use ($token): void {
+            $_SESSION['kothar_csrf'] = $token;
+        });
+    }
     kothar_csrf_set_cookie($token);
 
     return $token;
@@ -141,7 +152,6 @@ function kothar_csrf_set_cookie(string $token): void
 
 function kothar_csrf_matches(): bool
 {
-    kothar_ensure_session();
     $sent = (string) ($_POST['csrf'] ?? '');
     if (!preg_match('/^[a-f0-9]{32}$/', $sent)) {
         return false;
@@ -150,7 +160,9 @@ function kothar_csrf_matches(): bool
     if (!is_string($have) || !preg_match('/^[a-f0-9]{32}$/', $have)) {
         $have = kothar_csrf_from_cookie();
         if ($have !== '') {
-            $_SESSION['kothar_csrf'] = $have;
+            kothar_session_write(static function () use ($have): void {
+                $_SESSION['kothar_csrf'] = $have;
+            });
         }
     }
     if (!is_string($have) || $have === '') {
@@ -177,22 +189,22 @@ function kothar_csrf_field(): string
 
 function kothar_flash(string $message, string $type = 'ok'): void
 {
-    if (session_status() !== PHP_SESSION_ACTIVE) {
-        return;
-    }
-    if (!isset($_SESSION['kothar_flash']) || !is_array($_SESSION['kothar_flash'])) {
-        $_SESSION['kothar_flash'] = [];
-    }
-    $_SESSION['kothar_flash'][] = ['type' => $type, 'message' => $message];
+    kothar_session_write(static function () use ($type, $message): void {
+        if (!isset($_SESSION['kothar_flash']) || !is_array($_SESSION['kothar_flash'])) {
+            $_SESSION['kothar_flash'] = [];
+        }
+        $_SESSION['kothar_flash'][] = ['type' => $type, 'message' => $message];
+    });
 }
 
 function kothar_take_flashes(): array
 {
-    if (session_status() !== PHP_SESSION_ACTIVE) {
-        return [];
-    }
     $flashes = $_SESSION['kothar_flash'] ?? [];
-    unset($_SESSION['kothar_flash']);
+    if (isset($_SESSION['kothar_flash'])) {
+        kothar_session_write(static function (): void {
+            unset($_SESSION['kothar_flash']);
+        });
+    }
 
     return is_array($flashes) ? $flashes : [];
 }
@@ -219,7 +231,9 @@ function kothar_cart(): array
 
 function kothar_save_cart(array $cart): void
 {
-    $_SESSION['kothar_cart'] = ['items' => array_values($cart['items'] ?? [])];
+    kothar_session_write(static function () use ($cart): void {
+        $_SESSION['kothar_cart'] = ['items' => array_values($cart['items'] ?? [])];
+    });
 }
 
 /**
