@@ -63,6 +63,8 @@ function kothar_asset(string $relativePath): string
 function kothar_page_open(string $title): void
 {
     $csrf = kothar_csrf_token();
+    // Flashes ophalen vóór de eerste output: daarna kan de sessie niet meer heropend worden.
+    $flashes = kothar_take_flashes();
     $app = LOC('kothar.app.title');
     $full = $title === $app ? $app : $title . ' · ' . $app;
     echo '<!DOCTYPE html><html lang="' . kothar_h(getHtmlLang()) . '"><head><meta charset="utf-8">';
@@ -99,7 +101,7 @@ function kothar_page_open(string $title): void
     echo '</div>';
     echo '</div></header>';
     echo '<main id="inhoud" class="wrap">';
-    foreach (kothar_take_flashes() as $flash) {
+    foreach ($flashes as $flash) {
         if (!is_array($flash)) {
             continue;
         }

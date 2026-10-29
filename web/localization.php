@@ -1164,7 +1164,8 @@ JS;
 
 /**
  * Past ?lang= toe, bewaart de keuze bij het e-mailadres en haalt de parameter
- * uit de URL. De sessie blijft open: Kothar schrijft daarna winkelwagen en flashes.
+ * uit de URL. Daarna gaat de sessie dicht; winkelwagen, flashes en CSRF heropenen
+ * hem kort via kothar_session_write().
  * Tests zetten $GLOBALS['kothar_lang_redirect_capture'] om de redirect te vangen.
  */
 function kothar_bootstrap_language(): void
@@ -1219,3 +1220,6 @@ function kothar_bootstrap_language(): void
 }
 
 kothar_bootstrap_language();
+if (session_status() === PHP_SESSION_ACTIVE && PHP_SAPI !== 'cli') {
+    session_write_close();
+}
