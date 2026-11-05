@@ -8,8 +8,8 @@ try {
     $doc = kothar_load_compositions();
 } catch (Throwable $error) {
     http_response_code(500);
-    kothar_page_open('Samenstellingen');
-    echo '<h1>Niet beschikbaar</h1><p>' . kothar_h($error->getMessage()) . '</p>';
+    kothar_page_open(LOC('kothar.nav.compositions'));
+    echo '<h1>' . kothar_h(LOC('kothar.error.unavailable')) . '</h1><p>' . kothar_h($error->getMessage()) . '</p>';
     kothar_page_close();
     exit;
 }
@@ -22,14 +22,14 @@ usort($rows, static function ($a, $b): int {
     return $right <=> $left;
 });
 
-kothar_page_open('Samenstellingen');
-echo '<h1>Opgeslagen samenstellingen</h1>';
+kothar_page_open(LOC('kothar.nav.compositions'));
+echo '<h1>' . kothar_h(LOC('kothar.list.heading')) . '</h1>';
 if ($rows === []) {
-    echo '<p>Er is nog niets opgeslagen. <a href="index.php">Stel er een samen</a>.</p>';
+    echo '<p>' . kothar_h(LOC('kothar.list.empty')) . ' <a href="index.php">' . kothar_h(LOC('kothar.list.empty_link')) . '</a>.</p>';
     kothar_page_close();
     exit;
 }
-echo '<table class="grid"><thead><tr><th>Nummer</th><th>Categorie</th><th>Prijs</th><th>Geregistreerd door</th></tr></thead><tbody>';
+echo '<table class="grid"><thead><tr><th>' . kothar_h(LOC('kothar.cart.col.number')) . '</th><th>' . kothar_h(LOC('kothar.cart.col.category')) . '</th><th>' . kothar_h(LOC('kothar.list.col.price')) . '</th><th>' . kothar_h(LOC('kothar.list.col.by')) . '</th></tr></thead><tbody>';
 foreach ($rows as $row) {
     if (!is_array($row)) {
         continue;

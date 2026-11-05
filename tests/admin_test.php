@@ -67,6 +67,16 @@ check(strpos($added['options'][1]['id'], 'opt-') === 0, 'new option gets an id')
 check(array_column($added['options'], 'id')[0] === 'o2', 'posted order comes first');
 check(in_array('o1', array_column($added['options'], 'id'), true), 'omitted option is kept');
 
+check(kothar_clean_code(" 05 L\t", 40) === '05L', 'code drops every whitespace character');
+check(kothar_clean_code('A B C D', 3) === 'ABC', 'code length is counted after spaces are removed');
+check(kothar_clean_code(" \n\t ", 40) === '', 'whitespace-only code becomes empty');
+$spacedCode = kothar_apply_column_edit($column, 'Fluid', 'hint', [
+    ['id' => 'o1', 'label' => 'Fuel', 'code' => '05 L', 'description' => 'Fuel'],
+    ['id' => '', 'label' => 'Nieuw', 'code' => "N N", 'description' => ''],
+]);
+check($spacedCode['options'][0]['code'] === '05L', 'saved option code has no spaces');
+check($spacedCode['options'][1]['code'] === 'NN', 'new option code has no spaces');
+
 $removed = kothar_remove_column_option($added, $added['options'][1]['id']);
 check(count($removed['options']) === 3, 'remove drops one option');
 check(array_column($removed['options'], 'label')[0] === 'Ureal', 'remaining options stay');

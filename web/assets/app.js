@@ -1,9 +1,28 @@
+function kotharT(key) {
+  var dict = window.KOTHAR_I18N || {};
+  if (Object.prototype.hasOwnProperty.call(dict, key)) {
+    return String(dict[key]);
+  }
+  return key;
+}
+
+function kotharFmt(key) {
+  var text = kotharT(key);
+  var args = Array.prototype.slice.call(arguments, 1);
+  var index = 0;
+  return text.replace(/%[ds]/g, function () {
+    var value = args[index];
+    index += 1;
+    return value == null ? "" : String(value);
+  });
+}
+
 (function () {
   var slot = document.querySelector("[data-barcode]");
   if (slot && typeof JsBarcode !== "undefined") {
     var value = slot.getAttribute("data-barcode") || "";
     if (!/^[\x00-\x7F]+$/.test(value)) {
-      slot.insertAdjacentHTML("afterend", "<p class=\"hint\">Code128 kan dit nummer niet tekenen omdat er tekens buiten ASCII in staan.</p>");
+      slot.insertAdjacentHTML("afterend", "<p class=\"hint\">" + kotharT("kothar.barcode.non_ascii") + "</p>");
     } else {
       var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
       slot.appendChild(svg);
@@ -16,7 +35,7 @@
           margin: 10
         });
       } catch (error) {
-        slot.insertAdjacentHTML("afterend", "<p class=\"hint\">De barcode kon niet worden gemaakt.</p>");
+        slot.insertAdjacentHTML("afterend", "<p class=\"hint\">" + kotharT("kothar.barcode.failed") + "</p>");
       }
     }
   }
@@ -28,10 +47,17 @@
   var video = root.querySelector("video");
   var status = root.querySelector("[data-status]");
   var start = root.querySelector("[data-start]");
+  function scanText(attr, key) {
+    var value = root.getAttribute(attr);
+    if (value) {
+      return value;
+    }
+    return kotharT(key);
+  }
   var detectorOk = "BarcodeDetector" in window && navigator.mediaDevices && navigator.mediaDevices.getUserMedia;
   if (!detectorOk) {
     if (status) {
-      status.textContent = "Deze browser heeft geen barcodedetector. Vul het nummer hieronder in.";
+      status.textContent = scanText("data-msg-no-detector", "kothar.scan.no_detector");
     }
     if (video) {
       video.hidden = true;
@@ -52,7 +78,7 @@
       video.hidden = false;
       return video.play();
     }).then(function () {
-      status.textContent = "Richt de camera op de barcode.";
+      status.textContent = scanText("data-msg-aim", "kothar.scan.aim");
       timer = window.setInterval(function () {
         detector.detect(video).then(function (codes) {
           if (!codes || !codes.length) {
@@ -70,7 +96,7 @@
         }).catch(function () {});
       }, 400);
     }).catch(function () {
-      status.textContent = "Camera niet beschikbaar. Vul het nummer handmatig in.";
+      status.textContent = scanText("data-msg-camera-unavailable", "kothar.scan.camera_unavailable");
     });
   });
 })();
@@ -80,12 +106,22 @@
   if (!form) {
     return;
   }
+  Array.prototype.forEach.call(form.querySelectorAll("[data-fill]"), function (fill) {
+    var next = String(fill.value || "").replace(/\s+/g, "");
+    if (next !== fill.value) {
+      fill.value = next;
+      fill.defaultValue = next;
+    }
+  });
   var shell = form.closest(".builder-shell") || form;
   var live = shell.querySelector("[data-code-live]");
   var progress = shell.querySelector("[data-progress]");
   var result = shell.querySelector("[data-result]");
   var suppress = false;
   var skipAdvance = false;
+  var allowSubmit = false;
+  var enterNavDone = false;
+  var lastEntry = null;
   var resultTimer = 0;
   var ticket = 0;
   var scrollResult = false;
@@ -119,7 +155,204 @@
     return /^hsl\(\d{1,3} 62% 36%\)$/.test(color) ? color : "";
   }
 
+  function meterToken(raw) {
+    var text = String(raw == null ? "" : raw).replace(/\s+/g, "").replace(",", ".");
+    if (!/^\d+(?:\.\d+)?$/.test(text)) {
+      return "";
+    }
+    if (text.indexOf(".") !== -1) {
+      text = text.replace(/0+$/, "").replace(/\.$/, "");
+    }
+    return text;
+  }
+
+  // Zelfde regels als kothar_meter_draft() / kothar_preview_measures() in composition.php.
+  function meterDraft(raw) {
+    var text = String(raw == null ? "" : raw).replace(/\s+/g, "").replace(/,/g, ".");
+    if (text === "" || text === ".") {
+      return "";
+    }
+    if (/^\d+\.$/.test(text) || /^\d+(?:\.\d+)?$/.test(text)) {
+      return text;
+    }
+    return "";
+  }
+
+  function previewMeasures(mode, values, focus) {
+    var parts;
+    if (mode === "diameter") {
+      parts = [
+        { key: "d", prefix: "⌀", raw: String(values.d == null ? "" : values.d) },
+        { key: "l", prefix: "xL", raw: String(values.l == null ? "" : values.l) }
+      ];
+    } else if (mode === "hwl") {
+      parts = [
+        { key: "h", prefix: "H", raw: String(values.h == null ? "" : values.h) },
+        { key: "b", prefix: "xB", raw: String(values.b == null ? "" : values.b) },
+        { key: "l", prefix: "xL", raw: String(values.l == null ? "" : values.l) }
+      ];
+    } else {
+      return "";
+    }
+    var out = "";
+    var i;
+    var j;
+    for (i = 0; i < parts.length; i++) {
+      var raw = parts[i].raw;
+      var token = meterToken(raw);
+      var shown = token !== "" ? token : meterDraft(raw);
+      if (shown !== "") {
+        out += parts[i].prefix + shown;
+        continue;
+      }
+      var later = false;
+      for (j = i + 1; j < parts.length; j++) {
+        var laterRaw = parts[j].raw;
+        if (meterToken(laterRaw) !== "" || meterDraft(laterRaw) !== "") {
+          later = true;
+          break;
+        }
+      }
+      var rawTrim = raw.replace(/\s+/g, "");
+      var bare = rawTrim !== "" && shown === "";
+      if (focus === parts[i].key || later || bare) {
+        if (i === 0 && shown === "" && !later && !bare) {
+          break;
+        }
+        out += parts[i].prefix;
+        if (!later) {
+          break;
+        }
+        continue;
+      }
+      break;
+    }
+    return out;
+  }
+
+  function measureBox(step, mode) {
+    return step.querySelector('[data-measures="' + mode + '"]');
+  }
+
+  function measureInput(box, name) {
+    return box ? box.querySelector('[data-measure="' + name + '"]') : null;
+  }
+
+  function measureValue(box, name) {
+    var input = measureInput(box, name);
+    if (!input || input.disabled) {
+      return "";
+    }
+    return meterToken(input.value);
+  }
+
+  function measureRaw(box, name) {
+    var input = measureInput(box, name);
+    if (!input || input.disabled) {
+      return "";
+    }
+    return String(input.value || "");
+  }
+
+  function measureFocus(box) {
+    var active = document.activeElement;
+    if (!active || !box || !box.contains(active) || !active.hasAttribute("data-measure")) {
+      return "";
+    }
+    return active.getAttribute("data-measure") || "";
+  }
+
+  function stepEntryFields(step) {
+    var kind = step.getAttribute("data-kind") || "choices";
+    if (kind === "quantity") {
+      return Array.prototype.slice.call(step.querySelectorAll("[data-quantity]"));
+    }
+    var mode = kind;
+    if (kind === "dimensions") {
+      var radio = step.querySelector("input[data-vector]:checked");
+      mode = radio ? (radio.getAttribute("data-vector") || "") : "";
+    }
+    var box = mode === "hwl" || mode === "diameter" ? measureBox(step, mode) : null;
+    if (!box) {
+      return [];
+    }
+    return Array.prototype.filter.call(box.querySelectorAll("[data-measure]"), function (input) {
+      return !input.disabled;
+    });
+  }
+
+  function syncMeasures(step) {
+    var kind = step.getAttribute("data-kind") || "choices";
+    if (kind !== "dimensions") {
+      return;
+    }
+    var radio = step.querySelector("input[data-vector]:checked");
+    var mode = radio ? (radio.getAttribute("data-vector") || "") : "";
+    Array.prototype.forEach.call(step.querySelectorAll("[data-measures]"), function (box) {
+      var on = box.getAttribute("data-measures") === mode && mode !== "";
+      box.hidden = !on;
+      Array.prototype.forEach.call(box.querySelectorAll("input"), function (input) {
+        input.disabled = !on;
+      });
+    });
+  }
+
   function selectionOf(step) {
+    var kind = step.getAttribute("data-kind") || "choices";
+    if (kind === "quantity") {
+      var qty = step.querySelector("[data-quantity]");
+      var qtyCode = qty ? String(qty.value || "").replace(/\s+/g, "") : "";
+      if (!/^\d+$/.test(qtyCode)) {
+        qtyCode = "";
+      }
+      var prompt = step.getAttribute("data-prompt") || kotharT("kothar.build.quantity_prompt");
+      return {
+        valid: qtyCode !== "",
+        code: qtyCode,
+        label: qtyCode !== "" ? qtyCode : prompt,
+        color: qtyCode !== "" ? kotharSegmentColor(qtyCode) : "",
+        needsFill: true,
+        radio: null
+      };
+    }
+    if (kind === "hwl" || kind === "diameter" || kind === "dimensions") {
+      syncMeasures(step);
+      var mode = kind;
+      var vectorRadio = null;
+      if (kind === "dimensions") {
+        vectorRadio = step.querySelector("input[data-vector]:checked");
+        mode = vectorRadio ? (vectorRadio.getAttribute("data-vector") || "") : "";
+      }
+      var box = mode === "hwl" || mode === "diameter" ? measureBox(step, mode) : null;
+      var vectorCode = "";
+      var complete = false;
+      if (mode === "hwl") {
+        vectorCode = previewMeasures("hwl", {
+          h: measureRaw(box, "h"),
+          b: measureRaw(box, "b"),
+          l: measureRaw(box, "l")
+        }, measureFocus(box));
+        complete = measureValue(box, "h") !== "" && measureValue(box, "b") !== "" && measureValue(box, "l") !== "";
+      } else if (mode === "diameter") {
+        vectorCode = previewMeasures("diameter", {
+          d: measureRaw(box, "d"),
+          l: measureRaw(box, "l")
+        }, measureFocus(box));
+        complete = measureValue(box, "d") !== "" && measureValue(box, "l") !== "";
+      }
+      var vectorLabel = vectorCode;
+      if (vectorLabel === "") {
+        vectorLabel = mode === "" ? kotharT("kothar.build.choose_vector") : kotharT("kothar.build.fill_measures");
+      }
+      return {
+        valid: complete,
+        code: vectorCode,
+        label: vectorLabel,
+        color: vectorCode !== "" ? kotharSegmentColor(vectorCode) : "",
+        needsFill: true,
+        radio: vectorRadio
+      };
+    }
     var radio = step.querySelector('input[type="radio"]:checked');
     var fill = step.querySelector("[data-fill]");
     if (!radio) {
@@ -127,7 +360,7 @@
     }
     var needsFill = radio.getAttribute("data-needs-fill") === "1";
     var label = radio.getAttribute("data-label") || "";
-    var code = needsFill ? (fill ? fill.value.trim() : "") : (radio.getAttribute("data-code") || "");
+    var code = needsFill ? (fill ? String(fill.value || "").replace(/\s+/g, "") : "") : (radio.getAttribute("data-code") || "");
     var color = "";
     if (code !== "") {
       color = needsFill ? kotharSegmentColor(code) : (radio.getAttribute("data-color") || kotharSegmentColor(code));
@@ -154,8 +387,9 @@
     var state = selectionOf(step);
     var current = step.querySelector("[data-current]");
     if (current) {
-      var text = state.label || "Kies…";
-      if (state.needsFill && state.code) {
+      var text = state.label || kotharT("kothar.build.choose");
+      var kind = step.getAttribute("data-kind") || "choices";
+      if (kind === "choices" && state.needsFill && state.code) {
         text += " · " + state.code;
       }
       current.textContent = text;
@@ -216,7 +450,7 @@
         done++;
       }
       if (index) {
-        html += '<span class="code-dot">.</span>';
+        html += '<span class="code-dot">.</span><wbr>';
       }
       if (!state.code) {
         html += '<span class="code-seg is-empty">—</span>';
@@ -227,7 +461,7 @@
     });
     live.innerHTML = html;
     if (progress) {
-      progress.textContent = done + " van " + list.length;
+      progress.textContent = kotharFmt("kothar.build.progress", done, list.length);
     }
   }
 
@@ -412,24 +646,166 @@
         return;
       }
       result.removeAttribute("aria-busy");
-      result.innerHTML = '<p class="hint">Het nummer kon niet worden bijgewerkt. Gebruik “Werk nummer bij”.</p>';
+      result.innerHTML = '<p class="hint">' + kotharT("kothar.build.update_failed") + "</p>";
     });
   }
+
+  form.addEventListener("focusin", function (event) {
+    var target = event.target;
+    if (!target || !target.hasAttribute) {
+      return;
+    }
+    if (target.hasAttribute("data-measure") || target.hasAttribute("data-quantity") || target.hasAttribute("data-fill") || target.type === "radio") {
+      lastEntry = target;
+    }
+  });
 
   form.addEventListener("pointerdown", function (event) {
     var target = event.target;
     skipAdvance = !!(target && target.closest && target.closest("summary"));
   });
 
-  form.addEventListener("keydown", function (event) {
-    if (event.key !== "Enter" || !event.target || event.target.type !== "radio") {
+  function isEnterKey(event) {
+    var key = event.key;
+    return key === "Enter" || key === "Go" || key === "Next" || event.keyCode === 13 || event.which === 13;
+  }
+
+  function isSubmitControl(el) {
+    if (!el || el.nodeType !== 1) {
+      return false;
+    }
+    if (el.tagName === "BUTTON") {
+      return (el.getAttribute("type") || "submit").toLowerCase() === "submit";
+    }
+    if (el.tagName === "INPUT") {
+      var type = (el.type || "").toLowerCase();
+      return type === "submit" || type === "image";
+    }
+    return false;
+  }
+
+  function refreshStep(step) {
+    syncStep(step);
+    renderCode();
+    syncUrl();
+    scheduleResult();
+  }
+
+  function advanceMeasureEnter(input, step) {
+    refreshStep(step);
+    var fields = stepEntryFields(step);
+    var index = fields.indexOf(input);
+    var next = index >= 0 ? fields[index + 1] : null;
+    if (next) {
+      next.focus({ preventScroll: true });
+      syncStep(step);
+      renderCode();
+      return;
+    }
+    var state = selectionOf(step);
+    if (!state.valid) {
+      return;
+    }
+    if (step.getAttribute("data-complete") !== "1") {
+      step.setAttribute("data-complete", "1");
+    }
+    if (step.open) {
+      finishForward(step);
+    }
+  }
+
+  function moveEnter(target) {
+    if (!target || !target.closest) {
+      return;
+    }
+    var step = target.closest("[data-step]");
+    if (!step) {
+      return;
+    }
+    if (target.type === "radio") {
+      if (target.hasAttribute("data-vector")) {
+        refreshStep(step);
+        var box = step.querySelector('[data-measures="' + target.getAttribute("data-vector") + '"]');
+        var first = box ? box.querySelector("[data-measure]:not([disabled])") : null;
+        if (first) {
+          first.focus({ preventScroll: true });
+          syncStep(step);
+          renderCode();
+        }
+        return;
+      }
+      maybeAdvance(step);
+      return;
+    }
+    if (target.hasAttribute("data-fill")) {
+      commitFill(step, true);
+      return;
+    }
+    if (target.hasAttribute("data-measure") || target.hasAttribute("data-quantity")) {
+      advanceMeasureEnter(target, step);
+    }
+  }
+
+  function blockEnter(event) {
+    if (!isEnterKey(event)) {
+      return;
+    }
+    var target = event.target;
+    if (!isSubmitControl(target)) {
+      allowSubmit = false;
+    }
+    if (!target || target.tagName === "TEXTAREA" || isSubmitControl(target)) {
       return;
     }
     event.preventDefault();
-    var step = event.target.closest("[data-step]");
-    if (step) {
-      maybeAdvance(step);
+    event.stopPropagation();
+    if (event.repeat || enterNavDone) {
+      return;
     }
+    enterNavDone = true;
+    moveEnter(target);
+  }
+
+  form.addEventListener("keydown", blockEnter, true);
+  form.addEventListener("keypress", blockEnter, true);
+  form.addEventListener("keyup", function (event) {
+    if (isEnterKey(event)) {
+      enterNavDone = false;
+    }
+  });
+
+  var updateButton = form.querySelector("[data-update]");
+  function armSubmit() {
+    allowSubmit = true;
+  }
+  if (updateButton) {
+    updateButton.addEventListener("click", armSubmit);
+    updateButton.addEventListener("keydown", function (event) {
+      if (event.key === "Enter" || event.key === " " || event.keyCode === 13) {
+        armSubmit();
+      }
+    });
+  }
+
+  form.addEventListener("submit", function (event) {
+    var ok = allowSubmit;
+    allowSubmit = false;
+    if (ok) {
+      enterNavDone = false;
+      return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+    if (!enterNavDone) {
+      var active = document.activeElement;
+      if (!active || !form.contains(active) || active === form || isSubmitControl(active)) {
+        active = lastEntry;
+      }
+      if (active && form.contains(active)) {
+        moveEnter(active);
+      }
+    }
+    enterNavDone = false;
   });
 
   steps().forEach(function (step) {
@@ -455,6 +831,13 @@
       renderCode();
       syncUrl();
       scheduleResult();
+      if (target.hasAttribute("data-vector")) {
+        var box = step.querySelector('[data-measures="' + target.getAttribute("data-vector") + '"]');
+        var first = box ? box.querySelector("[data-measure]") : null;
+        if (first) {
+          first.focus({ preventScroll: true });
+        }
+      }
     });
     Array.prototype.forEach.call(step.querySelectorAll(".option-card"), function (card) {
       card.addEventListener("click", function () {
@@ -464,28 +847,53 @@
       });
     });
     var fill = step.querySelector("[data-fill]");
-    if (!fill) {
-      return;
+    if (fill) {
+      fill.addEventListener("input", function () {
+        refreshStep(step);
+      });
+      fill.addEventListener("blur", function () {
+        window.setTimeout(function () {
+          var allow = !skipAdvance;
+          skipAdvance = false;
+          commitFill(step, allow);
+        }, 180);
+      });
     }
-    fill.addEventListener("input", function () {
-      syncStep(step);
-      renderCode();
-      syncUrl();
-      scheduleResult();
-    });
-    fill.addEventListener("keydown", function (event) {
-      if (event.key !== "Enter") {
-        return;
-      }
-      event.preventDefault();
-      commitFill(step, true);
-    });
-    fill.addEventListener("blur", function () {
-      window.setTimeout(function () {
-        var allow = !skipAdvance;
-        skipAdvance = false;
-        commitFill(step, allow);
-      }, 180);
+    // Maten en quantity hebben geen [data-fill]. Die listeners horen hier,
+    // anders submit Enter de GET-form en ververst de pagina naar boven.
+    Array.prototype.forEach.call(step.querySelectorAll("[data-measure], [data-quantity]"), function (input) {
+      var live = function () {
+        refreshStep(step);
+      };
+      input.addEventListener("input", live);
+      input.addEventListener("change", live);
+      input.addEventListener("keyup", live);
+      input.addEventListener("focus", function () {
+        syncStep(step);
+        renderCode();
+      });
+      input.addEventListener("blur", function () {
+        window.setTimeout(function () {
+          var allow = !skipAdvance;
+          skipAdvance = false;
+          var fields = stepEntryFields(step);
+          var active = document.activeElement;
+          var inside = !!(active && fields.indexOf(active) !== -1);
+          refreshStep(step);
+          if (inside || !allow || input !== fields[fields.length - 1]) {
+            return;
+          }
+          if (step.getAttribute("data-complete") === "1") {
+            return;
+          }
+          var state = selectionOf(step);
+          if (!state.valid || !step.open) {
+            return;
+          }
+          step.setAttribute("data-complete", "1");
+          finishForward(step);
+        }, 180);
+      });
     });
   });
 
@@ -508,12 +916,12 @@
   dialog.className = "modal";
   dialog.innerHTML = ''
     + '<div class="modal-card">'
-    + '<h2 id="bevestig-titel">Verwijderen</h2>'
+    + '<h2 id="bevestig-titel">' + kotharT("kothar.confirm.title") + "</h2>"
     + '<p id="bevestig-tekst"></p>'
     + '<p class="hint" id="bevestig-noot" hidden></p>'
     + '<div class="modal-actions">'
-    + '<button type="button" class="quiet" data-cancel>Annuleren</button>'
-    + '<button type="button" class="danger" data-ok>Verwijderen</button>'
+    + '<button type="button" class="quiet" data-cancel>' + kotharT("kothar.confirm.cancel") + "</button>"
+    + '<button type="button" class="danger" data-ok>' + kotharT("kothar.confirm.delete") + "</button>"
     + '</div></div>';
   dialog.setAttribute("aria-labelledby", "bevestig-titel");
   dialog.setAttribute("aria-describedby", "bevestig-tekst");
@@ -532,7 +940,7 @@
 
   function openModal(button) {
     pending = button;
-    text.textContent = button.getAttribute("data-confirm") || "Weet je zeker dat je dit wilt verwijderen?";
+    text.textContent = button.getAttribute("data-confirm") || kotharT("kothar.confirm.fallback");
     var extra = button.getAttribute("data-confirm-note") || "";
     note.textContent = extra;
     note.hidden = extra === "";
@@ -676,7 +1084,7 @@
   function messageFrom(text) {
     var raw = String(text || "").trim();
     if (raw === "") {
-      return "Opslaan mislukt.";
+      return kotharT("kothar.admin.save_failed");
     }
     try {
       var data = JSON.parse(raw);
@@ -798,7 +1206,7 @@
       }
     });
     if (button) {
-      button.textContent = on ? "Volgorde aanpassen gereed" : "Volgorde aanpassen";
+      button.textContent = on ? kotharT("kothar.admin.reorder_done") : kotharT("kothar.admin.reorder");
       button.setAttribute("aria-pressed", on ? "true" : "false");
     }
     if (hint) {
@@ -820,6 +1228,9 @@
   }
 
   function postForm(form) {
+    if (window.kotharStripCodes) {
+      window.kotharStripCodes(form);
+    }
     if (window.kotharEnsureCsrf) {
       window.kotharEnsureCsrf(form);
     }
@@ -902,7 +1313,7 @@
         hideError();
       }).catch(function (error) {
         applyColumnOrder(serverOrder);
-        showError(error.message || "Ongeldige sessie. Laad de pagina opnieuw.");
+        showError(error.message || kotharT("kothar.error.invalid_session"));
       });
     });
   }
@@ -1015,7 +1426,7 @@
       var nameInput = form.querySelector('[name="kolomnaam"]');
       var nameLabel = column.querySelector(".column-name");
       if (nameInput && nameLabel) {
-        nameLabel.textContent = nameInput.value.trim() || "Kolom";
+        nameLabel.textContent = nameInput.value.trim() || kotharT("kothar.column.fallback");
       }
     });
     var optionList = form.querySelector("[data-option-list]");
@@ -1097,7 +1508,7 @@
           button.disabled = true;
           saveDirtyThenReorder().catch(function (error) {
             button.disabled = false;
-            showError(error.message || "Opslaan mislukt.");
+            showError(error.message || kotharT("kothar.admin.save_failed"));
           });
           return;
         }
@@ -1110,7 +1521,7 @@
 
   function openUnsaved(done) {
     if (typeof HTMLDialogElement === "undefined") {
-      if (window.confirm("Er zijn niet-opgeslagen wijzigingen. OK verwerpt ze en past de volgorde aan.")) {
+      if (window.confirm(kotharT("kothar.admin.unsaved_confirm"))) {
         done("discard");
       }
       return;
@@ -1119,12 +1530,12 @@
     dialog.className = "modal";
     dialog.innerHTML = ""
       + '<div class="modal-card">'
-      + "<h2>Niet-opgeslagen wijzigingen</h2>"
-      + "<p>Er zijn niet-opgeslagen wijzigingen. Wil je die opslaan of verwerpen voordat je de volgorde aanpast?</p>"
+      + "<h2>" + kotharT("kothar.admin.unsaved_title") + "</h2>"
+      + "<p>" + kotharT("kothar.admin.unsaved_body") + "</p>"
       + '<div class="modal-actions">'
-      + '<button type="button" class="quiet" data-cancel>Annuleren</button>'
-      + '<button type="button" class="quiet" data-discard>Verwerpen</button>'
-      + '<button type="button" data-save>Opslaan</button>'
+      + '<button type="button" class="quiet" data-cancel>' + kotharT("kothar.confirm.cancel") + "</button>"
+      + '<button type="button" class="quiet" data-discard>' + kotharT("kothar.admin.discard") + "</button>"
+      + '<button type="button" data-save>' + kotharT("kothar.admin.save") + "</button>"
       + "</div></div>";
     document.body.appendChild(dialog);
     var cancel = dialog.querySelector("[data-cancel]");
@@ -1147,4 +1558,107 @@
     dialog.showModal();
     cancel.focus();
   }
+})();
+
+(function () {
+  function isCodeField(field) {
+    return !!(field && field.matches && field.matches('input[name="code[]"], input[data-fill]'));
+  }
+
+  function stripField(field) {
+    var raw = String(field.value || "");
+    var next = raw.replace(/\s+/g, "");
+    if (next === raw) {
+      return;
+    }
+    var start = field.selectionStart;
+    var end = field.selectionEnd;
+    field.value = next;
+    if (document.activeElement !== field || start == null || !field.setSelectionRange) {
+      return;
+    }
+    var before = raw.slice(0, start).replace(/\s+/g, "").length;
+    var span = raw.slice(start, end == null ? start : end).replace(/\s+/g, "").length;
+    field.setSelectionRange(before, before + span);
+  }
+
+  function stripRoot(root) {
+    var scope = root && root.querySelectorAll ? root : document;
+    Array.prototype.forEach.call(scope.querySelectorAll('input[name="code[]"], input[data-fill]'), stripField);
+  }
+
+  window.kotharStripCodes = stripRoot;
+
+  document.addEventListener("input", function (event) {
+    if (isCodeField(event.target)) {
+      stripField(event.target);
+    }
+  }, true);
+
+  document.addEventListener("submit", function (event) {
+    var form = event.target;
+    if (form && form.querySelectorAll) {
+      stripRoot(form);
+    }
+  }, true);
+})();
+
+(function () {
+  var openButton = document.querySelector("[data-category-edit]");
+  var dialog = document.querySelector("[data-category-modal]");
+  if (!openButton || !dialog) {
+    return;
+  }
+  var form = dialog.querySelector("form");
+  var cancel = dialog.querySelector("[data-category-cancel]");
+  var nameInput = dialog.querySelector("#naam");
+
+  function resetForm() {
+    if (!form) {
+      return;
+    }
+    form.reset();
+    form.dispatchEvent(new Event("input", { bubbles: true }));
+  }
+
+  function openModal() {
+    if (typeof dialog.showModal === "function") {
+      if (!dialog.open) {
+        dialog.showModal();
+      }
+    } else {
+      dialog.setAttribute("open", "");
+    }
+    openButton.setAttribute("aria-expanded", "true");
+    if (nameInput) {
+      nameInput.focus();
+    }
+  }
+
+  function closeModal() {
+    resetForm();
+    if (dialog.open && typeof dialog.close === "function") {
+      dialog.close();
+    } else {
+      dialog.removeAttribute("open");
+    }
+    openButton.setAttribute("aria-expanded", "false");
+  }
+
+  openButton.addEventListener("click", openModal);
+  if (cancel) {
+    cancel.addEventListener("click", closeModal);
+  }
+  dialog.addEventListener("cancel", function () {
+    resetForm();
+    openButton.setAttribute("aria-expanded", "false");
+  });
+  dialog.addEventListener("close", function () {
+    openButton.setAttribute("aria-expanded", "false");
+  });
+  dialog.addEventListener("click", function (event) {
+    if (event.target === dialog) {
+      closeModal();
+    }
+  });
 })();

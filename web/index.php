@@ -8,30 +8,30 @@ try {
     $doc = kothar_load_categories();
 } catch (Throwable $error) {
     http_response_code(500);
-    kothar_page_open('Kothar');
-    echo '<h1>Categorieën niet beschikbaar</h1>';
+    kothar_page_open(LOC('kothar.app.title'));
+    echo '<h1>' . kothar_h(LOC('kothar.index.categories_unavailable')) . '</h1>';
     echo '<p>' . kothar_h($error->getMessage()) . '</p>';
     kothar_page_close();
     exit;
 }
 
 $categories = $doc['categories'];
-kothar_page_open('Kothar');
-echo '<h1>Samenstellen</h1>';
-echo '<p class="lead">Kies per kolom één optie. Het samenstellingsnummer is de gekozen codes, gescheiden door een punt.</p>';
+kothar_page_open(LOC('kothar.app.title'));
+echo '<h1>' . kothar_h(LOC('kothar.build.title')) . '</h1>';
+echo '<p class="lead">' . kothar_h(LOC('kothar.index.lead')) . '</p>';
 
-echo '<section class="panel"><h2>Nummer opzoeken</h2>';
+echo '<section class="panel"><h2>' . kothar_h(LOC('kothar.index.lookup')) . '</h2>';
 echo '<form method="get" action="samenstelling.php" class="inline-form">';
-echo '<label for="nummer">Samenstellingsnummer</label>';
-echo '<input id="nummer" name="nummer" required placeholder="bijvoorbeeld I.2.20" autocomplete="off">';
-echo '<button type="submit">Zoek</button>';
+echo '<label for="nummer">' . kothar_h(LOC('kothar.build.number')) . '</label>';
+echo '<input id="nummer" name="nummer" required placeholder="' . kothar_h(LOC('kothar.index.number_placeholder')) . '" autocomplete="off">';
+echo '<button type="submit">' . kothar_h(LOC('kothar.index.search')) . '</button>';
 echo '</form>';
-echo '<p class="hint">Een bestaand nummer opent de samenstelling. Een nieuw nummer wordt opgebouwd als de codes bij een categorie passen.</p>';
+echo '<p class="hint">' . kothar_h(LOC('kothar.index.lookup_hint')) . '</p>';
 echo '</section>';
 
-echo '<section><h2>Categorieën</h2>';
+echo '<section><h2>' . kothar_h(LOC('kothar.index.categories')) . '</h2>';
 if ($categories === []) {
-    echo '<p>Er zijn nog geen categorieën.</p>';
+    echo '<p>' . kothar_h(LOC('kothar.index.empty')) . '</p>';
 } else {
     echo '<ul class="cards">';
     foreach ($categories as $category) {
@@ -44,7 +44,7 @@ if ($categories === []) {
         echo '<strong>' . kothar_h((string) ($category['name'] ?? '')) . '</strong>';
         echo '<span>' . kothar_h((string) ($category['description'] ?? '')) . '</span>';
         $cols = is_array($category['columns'] ?? null) ? count($category['columns']) : 0;
-        echo '<em>' . $cols . ' kolommen</em>';
+        echo '<em>' . kothar_h(kothar_column_count($cols)) . '</em>';
         echo '</a></li>';
     }
     echo '</ul>';

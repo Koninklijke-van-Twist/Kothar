@@ -29,14 +29,14 @@ if ($row !== null) {
 if ($row === null || $found === null) {
     http_response_code(404);
     header('Content-Type: text/plain; charset=utf-8');
-    echo 'Bijlage niet gevonden';
+    echo LOC('kothar.detail.not_found_file');
     exit;
 }
 
 $stored = (string) ($found['stored'] ?? '');
 if (preg_match('/^[a-f0-9]{16}\.[a-z0-9]{1,5}$/', $stored) !== 1) {
     http_response_code(404);
-    echo 'Bijlage niet gevonden';
+    echo LOC('kothar.detail.not_found_file');
     exit;
 }
 
@@ -46,7 +46,7 @@ $real = realpath($path);
 if ($realDir === false || $real === false || !is_file($real) || !str_starts_with($real, $realDir . DIRECTORY_SEPARATOR)) {
     http_response_code(404);
     header('Content-Type: text/plain; charset=utf-8');
-    echo 'Bijlage niet gevonden';
+    echo LOC('kothar.detail.not_found_file');
     exit;
 }
 

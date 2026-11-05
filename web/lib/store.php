@@ -340,7 +340,7 @@ function kothar_apply_column_edit(array $column, string $name, string $hint, arr
         }
         $id = (string) ($posted['id'] ?? '');
         $label = (string) ($posted['label'] ?? '');
-        $code = (string) ($posted['code'] ?? '');
+        $code = kothar_clean_code((string) ($posted['code'] ?? ''));
         $description = (string) ($posted['description'] ?? '');
         if ($label === '') {
             if ($id !== '' && isset($existing[$id]) && !isset($seen[$id])) {
